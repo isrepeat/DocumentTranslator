@@ -25,11 +25,11 @@ dependencyResolutionManagement {
 val repositoryRoot = file("../..")
 
 rootProject.name = "MobileClock"
-include(":MobileClock.Android")
-include(":MobileClock.AndroidUpdater")
+include(":DocumentTranslator.Android")
+include(":DocumentTranslator.AndroidUpdater")
 
-project(":MobileClock.Android").projectDir = repositoryRoot.resolve("MobileClock.Android")
-project(":MobileClock.AndroidUpdater").projectDir = repositoryRoot.resolve("MobileClock.AndroidUpdater")
+project(":DocumentTranslator.Android").projectDir = repositoryRoot.resolve("DocumentTranslator.Android")
+project(":DocumentTranslator.AndroidUpdater").projectDir = repositoryRoot.resolve("DocumentTranslator.AndroidUpdater")
 
 gradle.beforeProject {
     layout.buildDirectory.set(repositoryRoot.resolve("Build/$name"))

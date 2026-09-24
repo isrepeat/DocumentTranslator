@@ -9,7 +9,7 @@
       "exe": "${workspaceRoot}\\..\\AndroidAppPreviewer\\!VS_TMP\\Build\\Debug\\x64\\AndroidAppPreviewer.WPF\\AndroidAppPreviewer.exe",
       "args": [
         "--plugin",
-        "${workspaceRoot}\\Build\\MobileClock.PreviewPlugin\\Build\\Debug\\x64\\MobileClock.PreviewPlugin\\MobileClock.PreviewPlugin.dll"
+        "${workspaceRoot}\\Build\\DocumentTranslator.PreviewPlugin\\Build\\Debug\\x64\\DocumentTranslator.PreviewPlugin\\DocumentTranslator.PreviewPlugin.dll"
       ],
       "currentDir": "${workspaceRoot}\\..\\AndroidAppPreviewer\\!VS_TMP\\Build\\Debug\\x64\\AndroidAppPreviewer.WPF",
       "debugType": "native"

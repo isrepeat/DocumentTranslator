@@ -22,15 +22,15 @@ $utf8Encoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = $utf8Encoding
 
 $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$androidHostRoot = Join-Path $projectRoot 'MobileClock.AndroidHost'
-$applicationRoot = Join-Path $projectRoot 'MobileClock.Application'
-$uiRoot = Join-Path $projectRoot 'MobileClock.UI'
+$androidHostRoot = Join-Path $projectRoot 'DocumentTranslator.AndroidHost'
+$applicationRoot = Join-Path $projectRoot 'DocumentTranslator.Application'
+$uiRoot = Join-Path $projectRoot 'DocumentTranslator.UI'
 $gradleRoot = Join-Path $projectRoot 'Tools\Gradle'
 $gradleWrapper = Join-Path $gradleRoot 'gradlew.bat'
 $configurationDirectory = $Configuration.ToLowerInvariant()
 $apkSuffix = if ($Configuration -eq 'Release') { 'release-unsigned' } else { 'debug' }
-$apkPath = Join-Path $projectRoot "Build\MobileClock.Android\outputs\apk\$configurationDirectory\MobileClock.Android-$apkSuffix.apk"
-$updaterApkPath = Join-Path $projectRoot "Build\MobileClock.AndroidUpdater\outputs\apk\$configurationDirectory\MobileClock.AndroidUpdater-$apkSuffix.apk"
+$apkPath = Join-Path $projectRoot "Build\DocumentTranslator.Android\outputs\apk\$configurationDirectory\DocumentTranslator.Android-$apkSuffix.apk"
+$updaterApkPath = Join-Path $projectRoot "Build\DocumentTranslator.AndroidUpdater\outputs\apk\$configurationDirectory\DocumentTranslator.AndroidUpdater-$apkSuffix.apk"
 
 function Invoke-Checked {
     param(
@@ -71,7 +71,7 @@ try {
     Pop-Location
 }
 
-$nativeLibrary = Join-Path $projectRoot "Build\MobileClock.AndroidHost\android\jniLibs\$Architecture\libmobileclock.so"
+$nativeLibrary = Join-Path $projectRoot "Build\DocumentTranslator.AndroidHost\android\jniLibs\$Architecture\libmobileclock.so"
 if (-not (Test-Path $nativeLibrary)) {
     throw "CMake completed but did not produce $nativeLibrary"
 }
@@ -81,11 +81,11 @@ if ($NativeOnly) {
     exit 0
 }
 
-# Gradle deliberately does not invoke CMake here. MobileClock.Android/build.gradle.kts no
+# Gradle deliberately does not invoke CMake here. DocumentTranslator.Android/build.gradle.kts no
 # longer has externalNativeBuild, so it only packages the .so emitted above.
 $gradleTasks = @(
-    ":MobileClock.Android:assemble$Configuration",
-    ":MobileClock.AndroidUpdater:assemble$Configuration"
+    ":DocumentTranslator.Android:assemble$Configuration",
+    ":DocumentTranslator.AndroidUpdater:assemble$Configuration"
 )
 Write-Host "==> Running Gradle tasks: $($gradleTasks -join ', ')"
 Write-Host "==> Using Java: $javaHome"

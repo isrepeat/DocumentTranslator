@@ -24,8 +24,8 @@ $buildAndroid = Join-Path $PSScriptRoot 'build-android.ps1'
 $uploadToDrive = Join-Path $PSScriptRoot 'upload-apk-to-drive.ps1'
 $configurationDirectory = $Configuration.ToLowerInvariant()
 $apkSuffix = if ($Configuration -eq 'Release') { 'release-unsigned' } else { 'debug' }
-$sourceApk = Join-Path $projectRoot "Build\MobileClock.Android\outputs\apk\$configurationDirectory\MobileClock.Android-$apkSuffix.apk"
-$sourceUpdaterApk = Join-Path $projectRoot "Build\MobileClock.AndroidUpdater\outputs\apk\$configurationDirectory\MobileClock.AndroidUpdater-$apkSuffix.apk"
+$sourceApk = Join-Path $projectRoot "Build\DocumentTranslator.Android\outputs\apk\$configurationDirectory\DocumentTranslator.Android-$apkSuffix.apk"
+$sourceUpdaterApk = Join-Path $projectRoot "Build\DocumentTranslator.AndroidUpdater\outputs\apk\$configurationDirectory\DocumentTranslator.AndroidUpdater-$apkSuffix.apk"
 $versionProperties = Join-Path $projectRoot 'version.properties'
 $distributionOutput = Join-Path $projectRoot 'Build\distribution'
 

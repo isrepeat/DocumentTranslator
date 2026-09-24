@@ -8,19 +8,19 @@ $utf8Encoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = $utf8Encoding
 
 $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$applicationRoot = Join-Path $projectRoot 'MobileClock.Application'
-$uiRoot = Join-Path $projectRoot 'MobileClock.UI'
+$applicationRoot = Join-Path $projectRoot 'DocumentTranslator.Application'
+$uiRoot = Join-Path $projectRoot 'DocumentTranslator.UI'
 $xamlCompilerRoot = Join-Path $projectRoot 'UtilityHelpersLib\NugetProjects\XamlRuntime\Nuget\XamlCompiler'
-$xamlCompilerBuild = Join-Path $projectRoot 'Build\MobileClock.Application\xaml-compiler'
+$xamlCompilerBuild = Join-Path $projectRoot 'Build\DocumentTranslator.Application\xaml-compiler'
 $xamlCompiler = Join-Path $xamlCompilerBuild 'Debug\XamlCompiler.exe'
 $xamlSourceRoots = @(
     @{
         Source = Join-Path $applicationRoot 'UI'
-        Generated = Join-Path $projectRoot '!Generated\MobileClock.Application\Xaml'
+        Generated = Join-Path $projectRoot '!Generated\DocumentTranslator.Application\Xaml'
     },
     @{
         Source = $uiRoot
-        Generated = Join-Path $projectRoot '!Generated\MobileClock.UI\Xaml'
+        Generated = Join-Path $projectRoot '!Generated\DocumentTranslator.UI\Xaml'
     }
 )
 $xamlIgnoreConfigurationPath = Join-Path $applicationRoot 'UI\XamlCompilerIgnore.json'
@@ -91,7 +91,7 @@ foreach ($xamlSourceRoot in $xamlSourceRoots) {
                 '--control-cpp-namespace',
                 'mobileclock::ui::control',
                 '--control-include-prefix',
-                'MobileClock.UI/Control'
+                'DocumentTranslator.UI/Control'
             )
             foreach ($directory in $xamlIgnoredDirectories) {
                 $compilerArguments += '--ignore-directory', $directory
