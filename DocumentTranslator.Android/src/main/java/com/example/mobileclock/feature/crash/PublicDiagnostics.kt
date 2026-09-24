@@ -53,6 +53,21 @@ internal object PublicDiagnostics {
         }
     }
 
+    @Synchronized
+    fun createCacheSnapshot(context: Context): File? = try {
+        val source = when {
+            mediaStoreUri != null -> context.contentResolver.openInputStream(mediaStoreUri!!)
+            legacyFile?.isFile == true -> legacyFile!!.inputStream()
+            else -> null
+        } ?: return null
+        val directory = File(context.cacheDir, "google-drive-logs").apply { mkdirs() }
+        val snapshot = File(directory, "DocumentTranslator-session-export-${System.currentTimeMillis()}.log")
+        source.use { input -> snapshot.outputStream().use { output -> input.copyTo(output) } }
+        snapshot
+    } catch (_: Exception) {
+        null
+    }
+
     private fun createMediaStoreLog(context: Context, fileName: String) {
         val values = ContentValues().apply {
             put(MediaStore.Downloads.DISPLAY_NAME, fileName)

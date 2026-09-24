@@ -72,3 +72,9 @@ android {
         ignoreAssetsPatterns += "Effects"
     }
 }
+
+dependencies {
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.lifecycle)
+    implementation(libs.play.services.auth)
+}
