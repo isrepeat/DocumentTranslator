@@ -26,10 +26,8 @@ val repositoryRoot = file("../..")
 
 rootProject.name = "MobileClock"
 include(":DocumentTranslator.Android")
-include(":DocumentTranslator.AndroidUpdater")
 
 project(":DocumentTranslator.Android").projectDir = repositoryRoot.resolve("DocumentTranslator.Android")
-project(":DocumentTranslator.AndroidUpdater").projectDir = repositoryRoot.resolve("DocumentTranslator.AndroidUpdater")
 
 gradle.beforeProject {
     layout.buildDirectory.set(repositoryRoot.resolve("Build/$name"))

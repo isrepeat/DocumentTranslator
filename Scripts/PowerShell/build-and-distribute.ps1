@@ -25,7 +25,6 @@ $uploadToDrive = Join-Path $PSScriptRoot 'upload-apk-to-drive.ps1'
 $configurationDirectory = $Configuration.ToLowerInvariant()
 $apkSuffix = if ($Configuration -eq 'Release') { 'release-unsigned' } else { 'debug' }
 $sourceApk = Join-Path $projectRoot "Build\DocumentTranslator.Android\outputs\apk\$configurationDirectory\DocumentTranslator.Android-$apkSuffix.apk"
-$sourceUpdaterApk = Join-Path $projectRoot "Build\DocumentTranslator.AndroidUpdater\outputs\apk\$configurationDirectory\DocumentTranslator.AndroidUpdater-$apkSuffix.apk"
 $versionProperties = Join-Path $projectRoot 'version.properties'
 $distributionOutput = Join-Path $projectRoot 'Build\distribution'
 
@@ -42,16 +41,11 @@ if ($KeepVersion) {
 
 $properties = ConvertFrom-StringData ([System.IO.File]::ReadAllText($versionProperties))
 $destinationApk = Join-Path $distributionOutput "MobileClock-$($properties.VERSION_CODE)-$($properties.VERSION_NAME).apk"
-$destinationUpdaterApk = Join-Path $distributionOutput 'MobileClockUpdater.apk'
 New-Item -ItemType Directory -Path $distributionOutput -Force | Out-Null
 Copy-Item -LiteralPath $sourceApk -Destination $destinationApk -Force
-Copy-Item -LiteralPath $sourceUpdaterApk -Destination $destinationUpdaterApk -Force
 
 if ($Destination -eq 'Drive') {
     Write-Host '==> Uploading MobileClock APK to Google Drive'
     & $uploadToDrive -ApkPath $destinationApk
     Write-Host "APK uploaded to Google Drive: $destinationApk"
-    Write-Host '==> Uploading MobileClock Updater APK to Google Drive'
-    & $uploadToDrive -ApkPath $destinationUpdaterApk
-    Write-Host "Updater APK uploaded to Google Drive: $destinationUpdaterApk"
 }

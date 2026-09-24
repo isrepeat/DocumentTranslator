@@ -30,7 +30,6 @@ $gradleWrapper = Join-Path $gradleRoot 'gradlew.bat'
 $configurationDirectory = $Configuration.ToLowerInvariant()
 $apkSuffix = if ($Configuration -eq 'Release') { 'release-unsigned' } else { 'debug' }
 $apkPath = Join-Path $projectRoot "Build\DocumentTranslator.Android\outputs\apk\$configurationDirectory\DocumentTranslator.Android-$apkSuffix.apk"
-$updaterApkPath = Join-Path $projectRoot "Build\DocumentTranslator.AndroidUpdater\outputs\apk\$configurationDirectory\DocumentTranslator.AndroidUpdater-$apkSuffix.apk"
 
 function Invoke-Checked {
     param(
@@ -84,8 +83,7 @@ if ($NativeOnly) {
 # Gradle deliberately does not invoke CMake here. DocumentTranslator.Android/build.gradle.kts no
 # longer has externalNativeBuild, so it only packages the .so emitted above.
 $gradleTasks = @(
-    ":DocumentTranslator.Android:assemble$Configuration",
-    ":DocumentTranslator.AndroidUpdater:assemble$Configuration"
+    ":DocumentTranslator.Android:assemble$Configuration"
 )
 Write-Host "==> Running Gradle tasks: $($gradleTasks -join ', ')"
 Write-Host "==> Using Java: $javaHome"
@@ -102,9 +100,4 @@ try {
 if (-not (Test-Path $apkPath)) {
     throw "Gradle completed but did not produce $apkPath"
 }
-if (-not (Test-Path $updaterApkPath)) {
-    throw "Gradle completed but did not produce $updaterApkPath"
-}
-
 Write-Host "APK ready: $apkPath"
-Write-Host "Updater APK ready: $updaterApkPath"
