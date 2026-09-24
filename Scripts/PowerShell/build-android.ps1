@@ -28,7 +28,7 @@ $uiRoot = Join-Path $projectRoot 'DocumentTranslator.UI'
 $gradleRoot = Join-Path $projectRoot 'Tools\Gradle'
 $gradleWrapper = Join-Path $gradleRoot 'gradlew.bat'
 $configurationDirectory = $Configuration.ToLowerInvariant()
-$apkSuffix = if ($Configuration -eq 'Release') { 'release-unsigned' } else { 'debug' }
+$apkSuffix = if ($Configuration -eq 'Release') { 'release' } else { 'debug' }
 $apkPath = Join-Path $projectRoot "Build\DocumentTranslator.Android\outputs\apk\$configurationDirectory\DocumentTranslator.Android-$apkSuffix.apk"
 
 function Invoke-Checked {

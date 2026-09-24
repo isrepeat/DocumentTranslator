@@ -9,7 +9,7 @@ param(
 
     # Конфигурация нативной и Android-сборки.
     [ValidateSet('Debug', 'Release')]
-    [string]$Configuration = 'Debug'
+    [string]$Configuration = 'Release'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -23,14 +23,10 @@ $bumpVersion = Join-Path $PSScriptRoot 'bump-version.ps1'
 $buildAndroid = Join-Path $PSScriptRoot 'build-android.ps1'
 $uploadToDrive = Join-Path $PSScriptRoot 'upload-apk-to-drive.ps1'
 $configurationDirectory = $Configuration.ToLowerInvariant()
-$apkSuffix = if ($Configuration -eq 'Release') { 'release-unsigned' } else { 'debug' }
+$apkSuffix = if ($Configuration -eq 'Release') { 'release' } else { 'debug' }
 $sourceApk = Join-Path $projectRoot "Build\DocumentTranslator.Android\outputs\apk\$configurationDirectory\DocumentTranslator.Android-$apkSuffix.apk"
 $versionProperties = Join-Path $projectRoot 'version.properties'
 $distributionOutput = Join-Path $projectRoot 'Build\distribution'
-
-if ($Configuration -eq 'Release') {
-    throw 'Release APK is unsigned. Configure a release signing key before uploading it to Google Drive.'
-}
 
 if ($KeepVersion) {
     Write-Host '==> Keeping the current Android version for a test reinstall'
@@ -40,12 +36,12 @@ if ($KeepVersion) {
 & $buildAndroid -Configuration $Configuration
 
 $properties = ConvertFrom-StringData ([System.IO.File]::ReadAllText($versionProperties))
-$destinationApk = Join-Path $distributionOutput "MobileClock-$($properties.VERSION_CODE)-$($properties.VERSION_NAME).apk"
+$destinationApk = Join-Path $distributionOutput "DocumentTranslator-$($properties.VERSION_CODE)-$($properties.VERSION_NAME).apk"
 New-Item -ItemType Directory -Path $distributionOutput -Force | Out-Null
 Copy-Item -LiteralPath $sourceApk -Destination $destinationApk -Force
 
 if ($Destination -eq 'Drive') {
-    Write-Host '==> Uploading MobileClock APK to Google Drive'
-    & $uploadToDrive -ApkPath $destinationApk
+    Write-Host '==> Uploading DocumentTranslator APK to Google Drive'
+    & $uploadToDrive -ApkPath $destinationApk -DriveFileName 'DocumentTranslator.apk'
     Write-Host "APK uploaded to Google Drive: $destinationApk"
 }
