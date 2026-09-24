@@ -45,12 +45,35 @@ namespace mobileclock::android_host::renderer {
         }
     }
 
+    void AndroidCommandDispatcher::Log(const std::string& message) const {
+        if (this->javaVm == nullptr || this->dispatcher == nullptr || this->logMethod == nullptr) {
+            return;
+        }
+        JNIEnv* env = nullptr;
+        bool isAttached = false;
+        if (this->javaVm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+            if (this->javaVm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+                return;
+            }
+            isAttached = true;
+        }
+        jstring javaMessage = env->NewStringUTF(message.c_str());
+        if (javaMessage != nullptr) {
+            env->CallVoidMethod(this->dispatcher, this->logMethod, javaMessage);
+            env->DeleteLocalRef(javaMessage);
+        }
+        if (isAttached) {
+            this->javaVm->DetachCurrentThread();
+        }
+    }
+
     void AndroidCommandDispatcher::SetDispatcher(JNIEnv* env, jobject value) {
         this->ClearDispatcher();
         env->GetJavaVM(&this->javaVm);
         this->dispatcher = env->NewGlobalRef(value);
         const jclass dispatcherClass = env->GetObjectClass(value);
         this->dispatchMethod = env->GetMethodID(dispatcherClass, "dispatch", "(ILjava/lang/String;Ljava/lang/String;)V");
+        this->logMethod = env->GetMethodID(dispatcherClass, "log", "(Ljava/lang/String;)V");
         env->DeleteLocalRef(dispatcherClass);
     }
 
@@ -67,5 +90,6 @@ namespace mobileclock::android_host::renderer {
         }
         this->dispatcher = nullptr;
         this->dispatchMethod = nullptr;
+        this->logMethod = nullptr;
     }
 }

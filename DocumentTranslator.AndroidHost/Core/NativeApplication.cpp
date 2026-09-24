@@ -7,8 +7,8 @@
 namespace mobileclock::android_host::core {
     NativeApplication::NativeApplication()
         : renderer(std::make_unique<mobileclock::android_host::renderer::NativeRenderer>()) {
-        // Не логируем конструктор: он вызывается до nativeSetLogFile и должен
-        // позволить настроить файл логов до первого обращения к логгеру.
+        // Не логируем конструктор: он вызывается до явной настройки логов и
+        // инициализации приложения.
     }
 
     NativeApplication::~NativeApplication() = default;
@@ -16,6 +16,10 @@ namespace mobileclock::android_host::core {
     //
     // API
     //
+    void NativeApplication::InitializeApplication(JNIEnv* env, jstring javaStoragePath) {
+        this->renderer->InitializeApplication(env, javaStoragePath);
+    }
+
     void NativeApplication::SetLogFile(JNIEnv* env, jstring javaLogFilePath) {
         this->renderer->SetLogFile(env, javaLogFilePath);
     }

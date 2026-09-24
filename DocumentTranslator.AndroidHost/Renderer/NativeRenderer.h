@@ -17,6 +17,7 @@ namespace mobileclock::android_host::renderer {
         NativeRenderer(const NativeRenderer&) = delete;
         NativeRenderer& operator=(const NativeRenderer&) = delete;
 
+        void InitializeApplication(JNIEnv* env, jstring javaStoragePath);
         void SetLogFile(JNIEnv* env, jstring javaLogFilePath);
         void FlushLogs();
         void SetAssetManager(JNIEnv* env, jobject javaAssetManager);

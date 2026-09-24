@@ -10,7 +10,8 @@ param(
     # Относительный путь от корня «Мой диск», а не путь локальной синхронизации.
     [string[]]$DrivePath = @('Android', 'DocumentTranslator'),
 
-    [string]$DriveFileName = 'DocumentTranslator.apk'
+    # Пустое значение сохраняет имя локального APK, включая версию релиза.
+    [string]$DriveFileName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -280,5 +281,8 @@ if ($null -eq $oauthClient) {
 }
 $accessToken = Get-AccessToken $oauthClient $TokenPath
 $destinationFolderId = Get-DriveFolderId $accessToken $DrivePath
+if ([string]::IsNullOrWhiteSpace($DriveFileName)) {
+    $DriveFileName = (Get-Item -LiteralPath $ApkPath).Name
+}
 $uploadedFile = Send-ApkToDrive $ApkPath $accessToken $destinationFolderId $DriveFileName
 Write-Host "Google Drive upload completed: $($uploadedFile.name) ($($uploadedFile.id))"

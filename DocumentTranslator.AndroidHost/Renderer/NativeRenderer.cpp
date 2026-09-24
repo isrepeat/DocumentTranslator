@@ -145,16 +145,15 @@ namespace mobileclock::android_host::renderer {
     //
     // API
     //
-    void NativeRenderer::SetLogFile(JNIEnv* env, jstring javaLogFilePath) {
-        const char* utf8Path = env->GetStringUTFChars(javaLogFilePath, nullptr);
+    void NativeRenderer::InitializeApplication(JNIEnv* env, jstring javaStoragePath) {
+        if (this->state->appSessionController != nullptr) {
+            return;
+        }
+        const char* utf8Path = env->GetStringUTFChars(javaStoragePath, nullptr);
         if (utf8Path == nullptr) {
             return;
         }
-        utility_helpers::logging::Configure({
-            std::filesystem::path(utf8Path),
-        });
-        utility_helpers::logging::Initialize("MobileClock");
-        const auto storagePath = std::filesystem::path(utf8Path).parent_path().parent_path() / "mobileclock-state.json";
+        const auto storagePath = std::filesystem::path(utf8Path);
         this->state->stateStore = std::make_unique<mobileclock::application::core::ApplicationStateStore>(
             _details::LoadStorage(storagePath),
             [storagePath](const mobileclock::application::model::ApplicationStateDocument& data) {
@@ -168,6 +167,18 @@ namespace mobileclock::android_host::renderer {
             const mobileclock::application::core::AppSessionSignalData& data) {
             this->state->commandDispatcher.Dispatch(signal, data);
         });
+        env->ReleaseStringUTFChars(javaStoragePath, utf8Path);
+    }
+
+    void NativeRenderer::SetLogFile(JNIEnv* env, jstring javaLogFilePath) {
+        const char* utf8Path = env->GetStringUTFChars(javaLogFilePath, nullptr);
+        if (utf8Path == nullptr) {
+            return;
+        }
+        utility_helpers::logging::Configure({
+            std::filesystem::path(utf8Path),
+        });
+        utility_helpers::logging::Initialize("MobileClock");
         env->ReleaseStringUTFChars(javaLogFilePath, utf8Path);
     }
 
@@ -220,10 +231,14 @@ namespace mobileclock::android_host::renderer {
         if (state.assetsManager == nullptr) {
             throw std::logic_error("AssetsManager must be set before creating a surface");
         }
+        state.commandDispatcher.Log("SurfaceChanged: destroying previous EGL resources");
         _details::DestroyRenderer(state);
         state.window = ANativeWindow_fromSurface(env, androidSurface);
+        state.commandDispatcher.Log("SurfaceChanged: Android window acquired");
         state.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        state.commandDispatcher.Log("SurfaceChanged: EGL display acquired");
         eglInitialize(state.display, nullptr, nullptr);
+        state.commandDispatcher.Log("SurfaceChanged: EGL display initialized");
 
         const EGLint configurationAttributes[] = {
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
@@ -236,6 +251,7 @@ namespace mobileclock::android_host::renderer {
         EGLConfig configuration = nullptr;
         EGLint configurationCount = 0;
         eglChooseConfig(state.display, configurationAttributes, &configuration, 1, &configurationCount);
+        state.commandDispatcher.Log("SurfaceChanged: EGL configuration selected");
         const EGLint contextAttributes[] = {
             EGL_CONTEXT_CLIENT_VERSION, 3,
             EGL_NONE,
@@ -245,12 +261,15 @@ namespace mobileclock::android_host::renderer {
             configuration,
             EGL_NO_CONTEXT,
             contextAttributes);
+        state.commandDispatcher.Log("SurfaceChanged: EGL context created");
         state.surface = eglCreateWindowSurface(
             state.display,
             configuration,
             state.window,
             nullptr);
+        state.commandDispatcher.Log("SurfaceChanged: EGL window surface created");
         eglMakeCurrent(state.display, state.surface, state.surface, state.context);
+        state.commandDispatcher.Log("SurfaceChanged: EGL context made current");
 
         const xaml::Size availableSize{
             static_cast<float>(width),
@@ -262,9 +281,11 @@ namespace mobileclock::android_host::renderer {
             state.appSessionController->Session().Initialize(availableSize);
             state.isSessionInitialized = true;
         }
+        state.commandDispatcher.Log("SurfaceChanged: application session initialized");
         const std::vector<unsigned char> regularFontData = state.assetsManager->ReadBytes("Fonts/Roboto-Regular.ttf");
         const std::vector<unsigned char> boldFontData = state.assetsManager->ReadBytes("Fonts/Roboto-Bold.ttf");
         const std::vector<unsigned char> blackFontData = state.assetsManager->ReadBytes("Fonts/Roboto-Black.ttf");
+        state.commandDispatcher.Log("SurfaceChanged: font assets loaded");
         state.renderer = std::make_unique<es_renderer::OpenGlRenderer>(
             width,
             height,
@@ -278,7 +299,9 @@ namespace mobileclock::android_host::renderer {
             [&assetsManager = *state.assetsManager](std::string_view source) {
                 return assetsManager.ReadBytes(source);
             });
+        state.commandDispatcher.Log("SurfaceChanged: OpenGL renderer created");
         _details::DrawPage(state);
+        state.commandDispatcher.Log("SurfaceChanged: initial page drawn");
     }
 
     void NativeRenderer::SurfaceDestroyed() {

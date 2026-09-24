@@ -16,6 +16,7 @@ namespace mobileclock::android_host::core {
         NativeApplication(const NativeApplication&) = delete;
         NativeApplication& operator=(const NativeApplication&) = delete;
 
+        void InitializeApplication(JNIEnv* env, jstring javaStoragePath);
         void SetLogFile(JNIEnv* env, jstring javaLogFilePath);
         void FlushLogs();
         void Log(JNIEnv* env, jstring javaCategory, jstring javaMessage);

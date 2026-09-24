@@ -12,6 +12,13 @@ namespace {
 // Единственная JNI-точка входа: она только переводит типы JVM в API приложения.
 // Состояние Activity, OpenGL ES и XAML UI здесь намеренно не хранятся.
 extern "C" JNIEXPORT void JNICALL
+Java_com_example_mobileclock_native_NativeRenderer_nativeInitializeApplication(
+    JNIEnv* env, jobject, jstring javaStoragePath) {
+    nativeApplication().InitializeApplication(env, javaStoragePath);
+    LOG_FUNCTION_SCOPE("MobileClock", "nativeInitializeApplication");
+}
+
+extern "C" JNIEXPORT void JNICALL
 Java_com_example_mobileclock_native_NativeRenderer_nativeSetLogFile(
     JNIEnv* env, jobject, jstring javaLogFilePath) {
     nativeApplication().SetLogFile(env, javaLogFilePath);

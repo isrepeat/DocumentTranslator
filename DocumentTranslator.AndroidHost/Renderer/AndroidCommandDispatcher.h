@@ -3,6 +3,8 @@
 
 #include "DocumentTranslator.Application/Core/AppSessionController.h"
 
+#include <string>
+
 namespace mobileclock::android_host::renderer {
     class AndroidCommandDispatcher final {
     public:
@@ -15,6 +17,7 @@ namespace mobileclock::android_host::renderer {
         void Dispatch(
             mobileclock::application::core::AppSessionSignal signal,
             const mobileclock::application::core::AppSessionSignalData& data) const;
+        void Log(const std::string& message) const;
         void SetDispatcher(JNIEnv* env, jobject value);
 
     private:
@@ -24,5 +27,6 @@ namespace mobileclock::android_host::renderer {
         JavaVM* javaVm = nullptr;
         jobject dispatcher = nullptr;
         jmethodID dispatchMethod = nullptr;
+        jmethodID logMethod = nullptr;
     };
 }

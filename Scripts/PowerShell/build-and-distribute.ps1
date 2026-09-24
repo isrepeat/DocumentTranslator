@@ -42,6 +42,7 @@ Copy-Item -LiteralPath $sourceApk -Destination $destinationApk -Force
 
 if ($Destination -eq 'Drive') {
     Write-Host '==> Uploading DocumentTranslator APK to Google Drive'
-    & $uploadToDrive -ApkPath $destinationApk -DriveFileName 'DocumentTranslator.apk'
+    # Имя содержит версию, поэтому Google Drive хранит историю релизов.
+    & $uploadToDrive -ApkPath $destinationApk
     Write-Host "APK uploaded to Google Drive: $destinationApk"
 }
