@@ -2,7 +2,6 @@ package com.example.mobileclock.native
 
 import android.content.res.AssetManager
 import android.view.Surface
-import com.example.mobileclock.feature.crash.PublicDiagnostics
 import java.io.File
 
 object NativeRenderer {
@@ -28,14 +27,9 @@ object NativeRenderer {
 
     fun initialize(filesDirectory: File, assetManager: AssetManager) {
         // Kotlin подготавливает Android-зависимые объекты до первого GL-кадра.
-        configureLogFile(filesDirectory)
         initializeApplication(filesDirectory)
-        PublicDiagnostics.write("JNI nativeSetAssetManager started")
         nativeSetAssetManager(assetManager)
-        PublicDiagnostics.write("JNI nativeSetAssetManager completed")
-        PublicDiagnostics.write("JNI nativeSetCommandDispatcher started")
         nativeSetCommandDispatcher(NativeBridgeCommandDispatcher)
-        PublicDiagnostics.write("JNI nativeSetCommandDispatcher completed")
     }
 
     @Synchronized
@@ -46,23 +40,21 @@ object NativeRenderer {
         // Состояние приложения передаётся явно. Настройка логов не должна
         // неявно создавать репозитории или AppSessionController.
         val storageFile = File(filesDirectory, "mobileclock-state.json")
-        PublicDiagnostics.write("JNI nativeInitializeApplication started")
         nativeInitializeApplication(storageFile.absolutePath)
-        PublicDiagnostics.write("JNI nativeInitializeApplication completed")
         isApplicationInitialized = true
     }
 
     @Synchronized
-    private fun configureLogFile(filesDirectory: File) {
+    fun configureLogFile(path: String) {
         if (isLogFileConfigured) {
             return
         }
-        val logFile = File(filesDirectory, "logs/documenttranslator.log")
-        logFile.parentFile?.mkdirs()
-        PublicDiagnostics.write("JNI nativeSetLogFile started")
-        nativeSetLogFile(logFile.absolutePath)
-        PublicDiagnostics.write("JNI nativeSetLogFile completed")
+        nativeSetLogFile(path)
         isLogFileConfigured = true
+    }
+
+    fun log(message: String) {
+        nativeLog("Android", message)
     }
 
     fun onSurfaceChanged(surface: Surface, width: Int, height: Int) {
@@ -99,6 +91,7 @@ object NativeRenderer {
     private external fun nativeSetAssetManager(assetManager: AssetManager)
     private external fun nativeSetCommandDispatcher(dispatcher: NativeBridgeCommandDispatcher)
     private external fun nativeDispatchSessionSignal(signal: Int, value: String, additionalValue: String)
+    private external fun nativeLog(category: String, message: String)
     private external fun nativeInitializeApplication(storagePath: String)
     private external fun nativeSetLogFile(path: String)
     private external fun nativeSurfaceDestroyed()
@@ -115,8 +108,4 @@ object NativeBridgeCommandDispatcher {
         handler?.invoke(signal, value, additionalValue)
     }
 
-    // Нативные маркеры запуска направляются в публичный session-log.
-    fun log(message: String) {
-        PublicDiagnostics.write("Native: $message")
-    }
 }

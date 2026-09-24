@@ -5,8 +5,8 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
-import com.example.mobileclock.feature.crash.PublicDiagnostics
 import com.example.mobileclock.feature.drive.GoogleDriveFileSender
+import com.example.mobileclock.feature.logging.NativeLogFile
 import com.example.mobileclock.feature.screenshot.ScreenshotCapture
 import com.example.mobileclock.feature.update.DocumentUpdateController
 import com.example.mobileclock.native.NativeRenderSurfaceView
@@ -28,9 +28,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        PublicDiagnostics.write("MainActivity.onCreate started")
+        NativeLogFile.configure(this)
         NativeRenderer.initialize(filesDir, assets)
-        PublicDiagnostics.write("NativeRenderer.initialize completed")
+        NativeRenderer.log("MainActivity.onCreate: NativeRenderer initialized")
         driveFileSender = GoogleDriveFileSender(
             activity = this,
             onAuthorizationRequired = authorizeGoogleDriveUpload::launch,
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
         NativeRenderer.setCommandHandler(::handleNativeEvent)
         nativeRenderSurface = NativeRenderSurfaceView(this)
         setContentView(nativeRenderSurface)
-        PublicDiagnostics.write("NativeRenderSurfaceView attached")
+        NativeRenderer.log("MainActivity.onCreate: NativeRenderSurfaceView attached")
     }
 
     private fun handleNativeEvent(signal: Int, value: String, additionalValue: String) {
@@ -68,12 +68,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun uploadLogs() {
-        val snapshot = PublicDiagnostics.createCacheSnapshot(this)
-        if (snapshot == null) {
-            showNativeStatus("Не удалось подготовить session-лог.")
+        val logUri = NativeLogFile.currentUri()
+        if (logUri == null) {
+            showNativeStatus("Session-лог ещё не создан.")
             return
         }
-        driveFileSender.send(snapshot, "text/plain")
+        driveFileSender.send(logUri, "text/plain", "DocumentTranslator-session.log")
     }
 
     private fun handleDriveResult(result: GoogleDriveFileSender.Result) {

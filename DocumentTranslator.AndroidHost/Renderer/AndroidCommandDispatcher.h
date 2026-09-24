@@ -27,6 +27,5 @@ namespace mobileclock::android_host::renderer {
         JavaVM* javaVm = nullptr;
         jobject dispatcher = nullptr;
         jmethodID dispatchMethod = nullptr;
-        jmethodID logMethod = nullptr;
     };
 }

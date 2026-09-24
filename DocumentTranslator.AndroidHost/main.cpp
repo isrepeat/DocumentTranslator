@@ -20,9 +20,11 @@ Java_com_example_mobileclock_native_NativeRenderer_nativeInitializeApplication(
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_example_mobileclock_native_NativeRenderer_nativeSetLogFile(
-    JNIEnv* env, jobject, jstring javaLogFilePath) {
+    JNIEnv* env,
+    jobject,
+    jstring javaLogFilePath) {
     nativeApplication().SetLogFile(env, javaLogFilePath);
-    LOG_FUNCTION_SCOPE("MobileClock", "nativeSetLogFile");
+    LOG_FUNCTION_SCOPE("DocumentTranslator", "nativeSetLogFile");
 }
 
 extern "C" JNIEXPORT void JNICALL

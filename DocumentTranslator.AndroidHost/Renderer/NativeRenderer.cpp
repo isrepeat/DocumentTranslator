@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <stdexcept>
 #include <fstream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -171,15 +172,17 @@ namespace mobileclock::android_host::renderer {
     }
 
     void NativeRenderer::SetLogFile(JNIEnv* env, jstring javaLogFilePath) {
-        const char* utf8Path = env->GetStringUTFChars(javaLogFilePath, nullptr);
-        if (utf8Path == nullptr) {
+        const char* path = env->GetStringUTFChars(javaLogFilePath, nullptr);
+        if (path == nullptr) {
             return;
         }
         utility_helpers::logging::Configure({
-            std::filesystem::path(utf8Path),
+            .filePath = std::filesystem::path(path),
+            .maxFileSize = std::numeric_limits<std::size_t>::max(),
+            .maxFiles = 0,
         });
-        utility_helpers::logging::Initialize("MobileClock");
-        env->ReleaseStringUTFChars(javaLogFilePath, utf8Path);
+        env->ReleaseStringUTFChars(javaLogFilePath, path);
+        utility_helpers::logging::Initialize("DocumentTranslator");
     }
 
     void NativeRenderer::FlushLogs() {
