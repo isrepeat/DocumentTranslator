@@ -36,7 +36,12 @@ class MainActivity : androidx.activity.ComponentActivity() {
             this,
             androidappkit.update.GoogleDriveUpdateConfiguration(
                 listOf("Android", "DocumentTranslator"),
-                Regex("DocumentTranslator-(\\d+)-.+\\.apk", RegexOption.IGNORE_CASE),
+                Regex("DocumentTranslator-(\\d+)\\.(\\d+)\\.(\\d+)\\.apk", RegexOption.IGNORE_CASE),
+                { match ->
+                    match.groupValues[1].toLong() * 1_000_000L +
+                        match.groupValues[2].toLong() * 1_000L +
+                        match.groupValues[3].toLong()
+                },
                 "com.isrepeat.apkupdater",
                 "com.isrepeat.apkupdater.UpdaterActivity",
                 "com.isrepeat.apkupdater.permission.INSTALL_UPDATE",

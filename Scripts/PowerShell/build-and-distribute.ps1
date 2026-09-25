@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [Parameter(Mandatory)]
     [ValidateSet('Drive')]
@@ -25,18 +25,14 @@ $uploadToDrive = Join-Path $PSScriptRoot 'upload-apk-to-drive.ps1'
 $configurationDirectory = $Configuration.ToLowerInvariant()
 $apkSuffix = if ($Configuration -eq 'Release') { 'release' } else { 'debug' }
 $sourceApk = Join-Path $projectRoot "Build\DocumentTranslator.Android\outputs\apk\$configurationDirectory\DocumentTranslator.Android-$apkSuffix.apk"
-$versionProperties = Join-Path $projectRoot 'version.properties'
 $distributionOutput = Join-Path $projectRoot 'Build\distribution'
 
-if ($KeepVersion) {
-    Write-Host '==> Keeping the current Android version for a test reinstall'
-} else {
-    & $bumpVersion
-}
-& $buildAndroid -Configuration $Configuration
+$version = & $bumpVersion -KeepVersion:$KeepVersion
+if ($KeepVersion) { Write-Host "==> Keeping Android version $($version.VERSION_CODE) / $($version.VERSION_NAME) for a test reinstall" }
+else { Write-Host "==> Using next Android version $($version.VERSION_CODE) / $($version.VERSION_NAME)" }
+& $buildAndroid -Configuration $Configuration -AppVersionCode $version.VERSION_CODE -AppVersionName $version.VERSION_NAME
 
-$properties = ConvertFrom-StringData ([System.IO.File]::ReadAllText($versionProperties))
-$destinationApk = Join-Path $distributionOutput "DocumentTranslator-$($properties.VERSION_CODE)-$($properties.VERSION_NAME).apk"
+$destinationApk = Join-Path $distributionOutput "DocumentTranslator-$($version.VERSION_NAME).apk"
 New-Item -ItemType Directory -Path $distributionOutput -Force | Out-Null
 Copy-Item -LiteralPath $sourceApk -Destination $destinationApk -Force
 

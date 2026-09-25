@@ -4,8 +4,12 @@ val repositoryRoot = rootProject.projectDir.parentFile.parentFile
 val versionProperties = Properties().apply {
     repositoryRoot.resolve("version.properties").inputStream().use(this::load)
 }
-val appVersionCode = versionProperties.getProperty("VERSION_CODE").toInt()
-val appVersionName = versionProperties.getProperty("VERSION_NAME")
+val appVersionCode = providers.gradleProperty("appVersionCode")
+    .orElse(versionProperties.getProperty("VERSION_CODE_BASE"))
+    .get().toInt()
+val appVersionName = providers.gradleProperty("appVersionName")
+    .orElse(versionProperties.getProperty("VERSION_NAME_BASE"))
+    .get()
 // Пароли и ключ лежат вне Git. Этот файл создаётся при настройке рабочей
 // машины и используется всеми вашими Android-приложениями для release-сборок.
 val releaseSigningPropertiesFile = file("C:/WORK/Secrets/isrepeat-android-release.properties")

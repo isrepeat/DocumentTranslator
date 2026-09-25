@@ -3,12 +3,17 @@
 set(mobileclock_version_file "${CMAKE_CURRENT_SOURCE_DIR}/../version.properties")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${mobileclock_version_file}")
-file(STRINGS "${mobileclock_version_file}" mobileclock_version_line
-    REGEX "^VERSION_NAME=")
-string(REGEX REPLACE "^VERSION_NAME=([^\r\n]+)$" "\\1"
-    mobileclock_package_version "${mobileclock_version_line}")
+if (DEFINED MOBILECLOCK_PACKAGE_VERSION)
+    set(mobileclock_package_version "${MOBILECLOCK_PACKAGE_VERSION}")
+else()
+    file(STRINGS "${mobileclock_version_file}" mobileclock_version_line
+        REGEX "^VERSION_NAME_BASE=")
+    string(REGEX REPLACE "^VERSION_NAME_BASE=([^\r\n]+)$" "\\1"
+        mobileclock_package_version_base "${mobileclock_version_line}")
+    set(mobileclock_package_version "${mobileclock_package_version_base}.0")
+endif()
 if (NOT mobileclock_package_version)
-    message(FATAL_ERROR "VERSION_NAME is missing in ${mobileclock_version_file}")
+    message(FATAL_ERROR "MOBILECLOCK_PACKAGE_VERSION and VERSION_NAME_BASE are missing.")
 endif()
 get_filename_component(mobileclock_project_root "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 set(mobileclock_generated_root "${mobileclock_project_root}/!Generated")

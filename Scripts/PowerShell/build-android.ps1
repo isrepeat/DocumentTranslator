@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     # Recreates CMake's build directory before compiling the native library.
     [switch]$Clean,
@@ -12,7 +12,12 @@ param(
 
     # Проект поддерживает только физические устройства ARM64.
     [ValidateSet('arm64-v8a')]
-    [string]$Architecture = 'arm64-v8a'
+    [string]$Architecture = 'arm64-v8a',
+
+    # Версия передаётся build-and-distribute.ps1 и не записывается в Git-файлы.
+    [int]$AppVersionCode,
+
+    [string]$AppVersionName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -54,6 +59,14 @@ $env:ANDROID_HOME = $androidSdk
 $env:ANDROID_SDK_ROOT = $androidSdk
 $env:Path = "$(Join-Path $javaHome 'bin');$env:Path"
 
+if ($PSBoundParameters.ContainsKey('AppVersionCode') -xor $PSBoundParameters.ContainsKey('AppVersionName')) {
+    throw 'AppVersionCode and AppVersionName must be specified together.'
+}
+$cmakeConfigureArguments = @('--preset', "android-arm64-$configurationDirectory", "-DCMAKE_MAKE_PROGRAM=$($tools.Ninja)")
+if ($PSBoundParameters.ContainsKey('AppVersionName')) {
+    $cmakeConfigureArguments += "-DMOBILECLOCK_PACKAGE_VERSION=$AppVersionName"
+}
+
 & (Join-Path $PSScriptRoot 'generate-xaml.ps1')
 
 Push-Location $projectRoot
@@ -61,9 +74,9 @@ try {
     $cmakePreset = "android-arm64-$configurationDirectory"
     Write-Host "==> Building native $Architecture $Configuration library with CMake"
     if ($Clean) {
-        Invoke-Checked $cmake @('--fresh', '--preset', $cmakePreset, "-DCMAKE_MAKE_PROGRAM=$($tools.Ninja)")
+        Invoke-Checked $cmake (@('--fresh') + $cmakeConfigureArguments)
     } else {
-        Invoke-Checked $cmake @('--preset', $cmakePreset, "-DCMAKE_MAKE_PROGRAM=$($tools.Ninja)")
+        Invoke-Checked $cmake $cmakeConfigureArguments
     }
     Invoke-Checked $cmake @('--build', '--preset', $cmakePreset)
 } finally {
@@ -85,6 +98,11 @@ if ($NativeOnly) {
 $gradleTasks = @(
     ":DocumentTranslator.Android:assemble$Configuration"
 )
+$gradleArguments = @('--no-daemon')
+if ($PSBoundParameters.ContainsKey('AppVersionCode')) {
+    $gradleArguments += "-PappVersionCode=$AppVersionCode"
+    $gradleArguments += "-PappVersionName=$AppVersionName"
+}
 Write-Host "==> Running Gradle tasks: $($gradleTasks -join ', ')"
 Write-Host "==> Using Java: $javaHome"
 Write-Host "==> Using Android SDK: $androidSdk"
@@ -92,7 +110,7 @@ Write-Host "==> Using Android SDK: $androidSdk"
 # находятся в Tools/Gradle, поэтому Gradle запускается оттуда.
 Push-Location $gradleRoot
 try {
-    Invoke-Checked $gradleWrapper (@('--no-daemon') + $gradleTasks)
+    Invoke-Checked $gradleWrapper ($gradleArguments + $gradleTasks)
 } finally {
     Pop-Location
 }
