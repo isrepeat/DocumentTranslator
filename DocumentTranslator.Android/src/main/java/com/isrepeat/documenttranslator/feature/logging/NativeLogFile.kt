@@ -1,4 +1,4 @@
-package com.example.mobileclock.feature.logging
+package com.isrepeat.documenttranslator.feature.logging
 
 import android.content.ContentValues
 import android.content.Context
@@ -6,7 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import com.example.mobileclock.native.NativeRenderer
+import com.isrepeat.documenttranslator.native.NativeRenderer
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

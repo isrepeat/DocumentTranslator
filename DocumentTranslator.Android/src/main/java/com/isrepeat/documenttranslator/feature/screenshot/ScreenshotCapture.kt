@@ -1,11 +1,11 @@
-package com.example.mobileclock.feature.screenshot
+package com.isrepeat.documenttranslator.feature.screenshot
 
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.PixelCopy
-import com.example.mobileclock.native.NativeRenderSurfaceView
+import com.isrepeat.documenttranslator.native.NativeRenderSurfaceView
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.io.File
 import java.io.FileOutputStream

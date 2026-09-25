@@ -1,4 +1,4 @@
-package com.example.mobileclock.native
+package com.isrepeat.documenttranslator.native
 
 import android.content.res.AssetManager
 import android.view.Surface
@@ -39,7 +39,7 @@ object NativeRenderer {
         }
         // Состояние приложения передаётся явно. Настройка логов не должна
         // неявно создавать репозитории или AppSessionController.
-        val storageFile = File(filesDirectory, "mobileclock-state.json")
+        val storageFile = File(filesDirectory, "documenttranslator-state.json")
         nativeInitializeApplication(storageFile.absolutePath)
         isApplicationInitialized = true
     }
@@ -82,7 +82,7 @@ object NativeRenderer {
     }
 
     // У external-методов нет Kotlin-тела: вызов переходит в JNI. ART ищет
-    // C++-символ Java_com_example_mobileclock_native_NativeRenderer_<имя метода>
+    // C++-символ Java_com_isrepeat_documenttranslator_native_NativeRenderer_<имя метода>
     // в libmobileclock.so. Этот символ определён в DocumentTranslator.AndroidHost/main.cpp.
     //
     // Примеры преобразования аргументов: Surface/AssetManager -> jobject,

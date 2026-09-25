@@ -1,4 +1,4 @@
-package com.example.mobileclock
+package com.isrepeat.documenttranslator
 
 import android.app.Application
 

@@ -1,16 +1,17 @@
-package com.example.mobileclock
+package com.isrepeat.documenttranslator
 
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
-import com.example.mobileclock.feature.drive.GoogleDriveFileSender
-import com.example.mobileclock.feature.logging.NativeLogFile
-import com.example.mobileclock.feature.screenshot.ScreenshotCapture
-import com.example.mobileclock.feature.update.DocumentUpdateController
-import com.example.mobileclock.native.NativeRenderSurfaceView
-import com.example.mobileclock.native.NativeRenderer
+import com.isrepeat.documenttranslator.feature.drive.GoogleDriveFileSender
+import com.isrepeat.documenttranslator.feature.logging.NativeLogFile
+import com.isrepeat.documenttranslator.feature.screenshot.ScreenshotCapture
+import com.isrepeat.documenttranslator.feature.update.DocumentUpdateController
+import com.isrepeat.documenttranslator.native.NativeRenderSurfaceView
+import com.isrepeat.documenttranslator.native.NativeRenderer
+import com.isrepeat.androidcoresdk.HelloWorld
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -31,6 +32,9 @@ class MainActivity : ComponentActivity() {
         NativeLogFile.configure(this)
         NativeRenderer.initialize(filesDir, assets)
         NativeRenderer.log("MainActivity.onCreate: NativeRenderer initialized")
+        com.isrepeat.documenttranslator.feature.logging.ApplicationDiagnostics.logInstalled(this)
+        handleUpdaterResult(intent)
+        NativeRenderer.log(HelloWorld.message())
         driveFileSender = GoogleDriveFileSender(
             activity = this,
             onAuthorizationRequired = authorizeGoogleDriveUpload::launch,
@@ -45,6 +49,32 @@ class MainActivity : ComponentActivity() {
         nativeRenderSurface = NativeRenderSurfaceView(this)
         setContentView(nativeRenderSurface)
         NativeRenderer.log("MainActivity.onCreate: NativeRenderSurfaceView attached")
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleUpdaterResult(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        NativeRenderer.log("MainActivity.onResume: task=$taskId")
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        NativeRenderer.log("MainActivity.windowFocus=$hasFocus, task=$taskId")
+    }
+
+    private fun handleUpdaterResult(intent: android.content.Intent) {
+        NativeRenderer.log("MainActivity intent: action=${intent.action}, session=${intent.getIntExtra("install_session_id", -1)}")
+        intent.getStringExtra("updater_trace")?.takeIf { it.isNotBlank() }?.let {
+            NativeRenderer.log("External updater trace:\n$it")
+        }
+        intent.getStringExtra("update_error")?.let {
+            NativeRenderer.log("External updater failure: $it")
+        }
     }
 
     private fun handleNativeEvent(signal: Int, value: String, additionalValue: String) {
@@ -84,7 +114,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun showNativeStatus(message: String) {
-        NativeRenderer.dispatch(NativeRenderer.AppSessionSignal.SET_STATUS, message)
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        runOnUiThread {
+            NativeRenderer.log("Статус: $message")
+            NativeRenderer.dispatch(NativeRenderer.AppSessionSignal.SET_STATUS, message)
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
     }
 }

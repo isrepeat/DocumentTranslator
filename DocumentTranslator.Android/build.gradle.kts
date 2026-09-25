@@ -20,13 +20,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mobileclock"
+    namespace = "com.isrepeat.documenttranslator"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.mobileclock"
+        applicationId = "com.isrepeat.documenttranslator"
         minSdk = 24
         targetSdk = 36
         versionCode = appVersionCode
@@ -74,6 +74,7 @@ android {
 }
 
 dependencies {
+    implementation("com.isrepeat:androidcoresdk:1.0.0")
     implementation(libs.androidx.activity)
     implementation(libs.androidx.lifecycle)
     implementation(libs.play.services.auth)

@@ -1,4 +1,4 @@
-package com.example.mobileclock.native
+package com.isrepeat.documenttranslator.native
 
 import android.content.Context
 import android.view.SurfaceHolder

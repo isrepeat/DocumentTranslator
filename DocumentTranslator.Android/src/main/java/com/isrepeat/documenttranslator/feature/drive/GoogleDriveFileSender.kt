@@ -1,14 +1,16 @@
-package com.example.mobileclock.feature.drive
+package com.isrepeat.documenttranslator.feature.drive
 
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.lifecycleScope
+import com.isrepeat.documenttranslator.native.NativeRenderer
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.AuthorizationResult
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.Scope
+import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,7 +54,7 @@ class GoogleDriveFileSender(
         try {
             handleAuthorizationResult(Identity.getAuthorizationClient(activity).getAuthorizationResultFromIntent(intent))
         } catch (exception: Exception) {
-            finish(Result.Failure("Доступ к Google Drive не предоставлен: ${exception.message}"))
+            finish(Result.Failure(authorizationFailure("Google Drive upload authorization result failed", exception)))
         }
     }
 
@@ -63,13 +65,17 @@ class GoogleDriveFileSender(
         }
         isRunning = true
         pendingFile = file
+        NativeRenderer.log("Google Drive upload authorization requested: package=${activity.packageName}, scope=$DRIVE_SCOPE, file=${file.name}")
         val request = AuthorizationRequest.builder().setRequestedScopes(listOf(Scope(DRIVE_SCOPE))).build()
         Identity.getAuthorizationClient(activity).authorize(request)
             .addOnSuccessListener(::handleAuthorizationResult)
-            .addOnFailureListener { finish(Result.Failure("Не удалось авторизоваться в Google Drive: ${it.message}")) }
+            .addOnFailureListener { exception ->
+                finish(Result.Failure(authorizationFailure("Google Drive upload authorization request failed", exception)))
+            }
     }
 
     private fun handleAuthorizationResult(result: AuthorizationResult) {
+        NativeRenderer.log("Google Drive upload authorization result received: hasResolution=${result.hasResolution()}, hasToken=${result.accessToken != null}")
         if (result.hasResolution()) {
             val pendingIntent = result.pendingIntent ?: run {
                 finish(Result.Failure("Google не вернул экран авторизации."))
@@ -165,6 +171,13 @@ class GoogleDriveFileSender(
         pendingFile = null
         isRunning = false
         onCompleted(result)
+    }
+
+    private fun authorizationFailure(operation: String, exception: Exception): String {
+        val statusCode = (exception as? ApiException)?.statusCode
+        val diagnostic = "$operation: type=${exception::class.java.name}, statusCode=$statusCode, message=${exception.message}, cause=${exception.cause?.javaClass?.name}:${exception.cause?.message}"
+        NativeRenderer.log(diagnostic)
+        return "Доступ к Google Drive не предоставлен: ${exception.message}"
     }
 
     private fun encode(value: String): String = URLEncoder.encode(value, Charsets.UTF_8.name())
