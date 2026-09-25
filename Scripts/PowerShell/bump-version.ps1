@@ -1,53 +1,47 @@
-﻿[CmdletBinding()]
-param()
+[CmdletBinding()]
+param(
+# Возвращает последнюю опубликованную версию вместо следующей.
+    [switch]$KeepVersion
+)
 
 $ErrorActionPreference = 'Stop'
-$utf8Encoding = [System.Text.UTF8Encoding]::new($false)
-[Console]::InputEncoding = $utf8Encoding
-[Console]::OutputEncoding = $utf8Encoding
-$OutputEncoding = $utf8Encoding
-$versionFile = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) 'version.properties'
+$projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$versionFile = Join-Path $projectRoot 'version.properties'
+$distributionDirectory = Join-Path $projectRoot 'Build\distribution'
 
-if (-not (Test-Path $versionFile)) {
+if (-not (Test-Path -LiteralPath $versionFile -PathType Leaf)) {
     throw "Version file not found: $versionFile"
 }
 
-$invariantCulture = [System.Globalization.CultureInfo]::InvariantCulture
-$lines = Get-Content -LiteralPath $versionFile
-$oldCode = $null
-$oldName = $null
-
-foreach ($line in $lines) {
-    if ($line -match '^\s*VERSION_CODE\s*=\s*(\d+)\s*$') {
-        $oldCode = [int]$Matches[1]
-    }
-    if ($line -match '^\s*VERSION_NAME\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*$') {
-        $oldName = [decimal]::Parse($Matches[1], $invariantCulture)
-    }
+$properties = ConvertFrom-StringData ([System.IO.File]::ReadAllText($versionFile))
+$baseCode = 0
+if (-not [int]::TryParse($properties.VERSION_CODE_BASE, [ref]$baseCode)) {
+    throw 'version.properties must define integer VERSION_CODE_BASE.'
+}
+if ($properties.VERSION_NAME_BASE -notmatch '^\d+\.\d+$') {
+    throw 'version.properties must define VERSION_NAME_BASE in major.minor format.'
 }
 
-if ($null -eq $oldCode -or $null -eq $oldName) {
-    throw 'version.properties must define numeric VERSION_CODE and VERSION_NAME values.'
-}
-if ($oldCode -eq [int]::MaxValue) {
-    throw 'VERSION_CODE cannot be increased further.'
-}
-
-# Upload releases always move both version fields forward. Decimal is used so
-# 0.05 + 0.01 stays exactly 0.06 rather than becoming a floating-point value.
-$newCode = $oldCode + 1
-$newName = ($oldName + [decimal]'0.01').ToString('0.00', $invariantCulture)
-
-$updatedLines = foreach ($line in $lines) {
-    if ($line -match '^\s*VERSION_CODE\s*=') {
-        "VERSION_CODE=$newCode"
-    } elseif ($line -match '^\s*VERSION_NAME\s*=') {
-        "VERSION_NAME=$newName"
-    } else {
-        $line
+$publishedVersions = if (Test-Path -LiteralPath $distributionDirectory -PathType Container) {
+    Get-ChildItem -LiteralPath $distributionDirectory -Filter 'DocumentTranslator-*.apk' -File | ForEach-Object {
+        $match = [regex]::Match($_.Name, "^DocumentTranslator-$([regex]::Escape($properties.VERSION_NAME_BASE))\.(\d+)\.apk$")
+        if ($match.Success) {
+            [pscustomobject]@{
+                Patch = [int]$match.Groups[1].Value
+            }
+        }
     }
 }
+$latestVersion = $publishedVersions | Sort-Object Patch, Code -Descending | Select-Object -First 1
+if ($KeepVersion) {
+    $patch = if ($null -eq $latestVersion) { 0 } else { $latestVersion.Patch }
+} else {
+    $patch = if ($null -eq $latestVersion) { 1 } else { $latestVersion.Patch + 1 }
+}
+$versionCode = $baseCode + $patch
+$versionName = "$($properties.VERSION_NAME_BASE).$patch"
 
-$versionText = $updatedLines -join [Environment]::NewLine
-[System.IO.File]::WriteAllText($versionFile, $versionText, [System.Text.UTF8Encoding]::new($false))
-Write-Host "Version increased: $oldCode / $($oldName.ToString('0.00', $invariantCulture)) -> $newCode / $newName"
+[pscustomobject]@{
+    VERSION_CODE = $versionCode
+    VERSION_NAME = $versionName
+}

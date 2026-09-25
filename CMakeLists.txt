@@ -7,21 +7,21 @@ include(cmake/InstallAndroidAppPreviewerPluginSdk.cmake)
 fn_mobileclock_install_android_app_previewer_plugin_sdk()
 
 # Короткое имя сохраняет пути к промежуточным объектам ниже MAX_PATH, не
-# меняя имя исходной папки MobileClock.AndroidHost.
-add_subdirectory(MobileClock.AndroidHost MC.AHost)
+# меняя имя исходной папки DocumentTranslator.AndroidHost.
+add_subdirectory(DocumentTranslator.AndroidHost MC.AHost)
 
 # Desktop preview-plugin относится к MobileClock, а не к решению WPF-хоста.
 # На Android он не нужен: там используется mobileclock_android_host.
 if (NOT ANDROID)
-    add_subdirectory(MobileClock.PreviewPlugin)
+    add_subdirectory(DocumentTranslator.PreviewPlugin)
 endif()
 
 if (NOT ANDROID AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     enable_testing()
     file(GLOB_RECURSE mobileclock_runtime_markup_test_files CONFIGURE_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/MobileClock.AndroidHost/Tests/RuntimeMarkup/*.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/MobileClock.AndroidHost/Tests/RuntimeMarkup/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/MobileClock.AndroidHost/Tests/RuntimeMarkup/*.xaml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentTranslator.AndroidHost/Tests/RuntimeMarkup/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentTranslator.AndroidHost/Tests/RuntimeMarkup/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/DocumentTranslator.AndroidHost/Tests/RuntimeMarkup/*.xaml"
     )
     # Тесты собираются явно при работе с ними, но не входят в обычную desktop
     # сборку: F5 Previewer-а не должен зависеть от их отдельного состояния.

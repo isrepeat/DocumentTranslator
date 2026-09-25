@@ -40,11 +40,11 @@ function Initialize-VisualStudioEnvironment {
 try {
     $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
     $generateXamlScript = Join-Path $projectRoot 'Scripts\PowerShell\generate-xaml.ps1'
-    $artifactDirectory = Join-Path $projectRoot 'Build\MobileClock.PreviewPlugin'
+    $artifactDirectory = Join-Path $projectRoot 'Build\DocumentTranslator.PreviewPlugin'
     $previewerRoot = Join-Path (Split-Path -Parent $projectRoot) 'AndroidAppPreviewer'
     $projectFile = Join-Path $previewerRoot 'AndroidAppPreviewer.WPF\AndroidAppPreviewer.WPF.csproj'
     $previewer = Join-Path $previewerRoot "!VS_TMP\Build\$Configuration\x64\AndroidAppPreviewer.WPF\AndroidAppPreviewer.exe"
-    $plugin = Join-Path $artifactDirectory "Build\$Configuration\x64\MobileClock.PreviewPlugin\MobileClock.PreviewPlugin.dll"
+    $plugin = Join-Path $artifactDirectory "Build\$Configuration\x64\DocumentTranslator.PreviewPlugin\DocumentTranslator.PreviewPlugin.dll"
     $binaryLogDirectory = Join-Path $artifactDirectory 'Logs'
     $binaryLogName = "android-app-previewer-{0:yyyyMMdd-HHmmss}.binlog" -f [DateTime]::Now
     $binaryLogPath = Join-Path $binaryLogDirectory $binaryLogName

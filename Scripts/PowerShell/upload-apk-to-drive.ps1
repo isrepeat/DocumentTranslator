@@ -3,11 +3,15 @@ param(
     [Parameter(Mandatory)]
     [string]$ApkPath,
 
-    [string]$OAuthClientPath = 'C:\WORK\Secrets\mobileclock-drive-oauth.json',
+    [string]$OAuthClientPath = 'C:\WORK\Secrets\apkupdater-drive-oauth.json',
 
-    [string]$TokenPath = 'C:\WORK\Secrets\mobileclock-drive-token.json',
+    [string]$TokenPath = 'C:\WORK\Secrets\apkupdater-drive-token.json',
 
-    [string]$FolderId = '1w7RHJCRjhIpHU2uUL2lB6qrofxbjWPV1'
+    # Относительный путь от корня «Мой диск», а не путь локальной синхронизации.
+    [string[]]$DrivePath = @('Android', 'DocumentTranslator'),
+
+    # Пустое значение сохраняет имя локального APK, включая версию релиза.
+    [string]$DriveFileName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -150,28 +154,90 @@ function Get-AccessToken {
     return $response.access_token
 }
 
+function Get-DriveItem {
+    param(
+        [Parameter(Mandatory)] [string]$AccessToken,
+        [Parameter(Mandatory)] [string]$ParentId,
+        [Parameter(Mandatory)] [string]$Name,
+        [string]$MimeType
+    )
+
+    $escapedName = $Name.Replace("'", "\\'")
+    $query = "'$ParentId' in parents and name = '$escapedName' and trashed = false"
+    if ($MimeType) {
+        $query += " and mimeType = '$MimeType'"
+    }
+    $uri = 'https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,name,mimeType)&q=' + [Uri]::EscapeDataString($query)
+    $response = Invoke-RestMethod -Method Get -Uri $uri -Headers @{ Authorization = "Bearer $AccessToken" }
+    return @($response.files)[0]
+}
+
+function Get-DriveFolderId {
+    param(
+        [Parameter(Mandatory)] [string]$AccessToken,
+        [Parameter(Mandatory)] [string[]]$PathSegments
+    )
+
+    $parentId = 'root'
+    foreach ($segment in $PathSegments) {
+        $folder = Get-DriveItem -AccessToken $AccessToken -ParentId $parentId -Name $segment -MimeType 'application/vnd.google-apps.folder'
+        if ($null -eq $folder) {
+            # Первая публикация может выполняться до ручного создания папки.
+            $folder = New-DriveFolder -AccessToken $AccessToken -ParentId $parentId -Name $segment
+        }
+        $parentId = $folder.id
+    }
+    return $parentId
+}
+
+function New-DriveFolder {
+    param(
+        [Parameter(Mandatory)] [string]$AccessToken,
+        [Parameter(Mandatory)] [string]$ParentId,
+        [Parameter(Mandatory)] [string]$Name
+    )
+
+    $metadata = @{
+        mimeType = 'application/vnd.google-apps.folder'
+        name = $Name
+        parents = @($ParentId)
+    } | ConvertTo-Json -Compress
+    return Invoke-RestMethod -Method Post -Uri 'https://www.googleapis.com/drive/v3/files?fields=id,name' -Headers @{
+        Authorization = "Bearer $AccessToken"
+        'Content-Type' = 'application/json'
+    } -Body $metadata
+}
+
 function Send-ApkToDrive {
     param(
         [Parameter(Mandatory)] [string]$FilePath,
         [Parameter(Mandatory)] [string]$AccessToken,
-        [Parameter(Mandatory)] [string]$DestinationFolderId
+        [Parameter(Mandatory)] [string]$DestinationFolderId,
+        [Parameter(Mandatory)] [string]$DestinationFileName
     )
 
     $file = Get-Item -LiteralPath $FilePath
-    $boundary = "MobileClock$([Guid]::NewGuid().ToString('N'))"
+    $boundary = "DocumentTranslator$([Guid]::NewGuid().ToString('N'))"
+    $existingFile = Get-DriveItem -AccessToken $AccessToken -ParentId $DestinationFolderId -Name $DestinationFileName
     $metadata = @{
         mimeType = 'application/vnd.android.package-archive'
-        name = $file.Name
-        parents = @($DestinationFolderId)
-    } | ConvertTo-Json -Compress
+        name = $DestinationFileName
+    }
+    if ($null -eq $existingFile) {
+        $metadata.parents = @($DestinationFolderId)
+    }
+    $metadataJson = $metadata | ConvertTo-Json -Compress
     $prefix = [System.Text.Encoding]::UTF8.GetBytes(
-        "--$boundary`r`nContent-Type: application/json; charset=UTF-8`r`n`r`n$metadata`r`n--$boundary`r`nContent-Type: application/vnd.android.package-archive`r`n`r`n"
+        "--$boundary`r`nContent-Type: application/json; charset=UTF-8`r`n`r`n$metadataJson`r`n--$boundary`r`nContent-Type: application/vnd.android.package-archive`r`n`r`n"
     )
     $suffix = [System.Text.Encoding]::ASCII.GetBytes("`r`n--$boundary--`r`n")
-    $request = [System.Net.HttpWebRequest]::Create(
+    $requestUri = if ($null -eq $existingFile) {
         'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name'
-    )
-    $request.Method = 'POST'
+    } else {
+        "https://www.googleapis.com/upload/drive/v3/files/$($existingFile.id)?uploadType=multipart&fields=id,name"
+    }
+    $request = [System.Net.HttpWebRequest]::Create($requestUri)
+    $request.Method = if ($null -eq $existingFile) { 'POST' } else { 'PATCH' }
     $request.ContentType = "multipart/related; boundary=$boundary"
     $request.Headers['Authorization'] = "Bearer $AccessToken"
     $request.ContentLength = $prefix.Length + $file.Length + $suffix.Length
@@ -214,5 +280,9 @@ if ($null -eq $oauthClient) {
     throw 'OAuth JSON must contain Desktop app credentials in the installed section.'
 }
 $accessToken = Get-AccessToken $oauthClient $TokenPath
-$uploadedFile = Send-ApkToDrive $ApkPath $accessToken $FolderId
+$destinationFolderId = Get-DriveFolderId $accessToken $DrivePath
+if ([string]::IsNullOrWhiteSpace($DriveFileName)) {
+    $DriveFileName = (Get-Item -LiteralPath $ApkPath).Name
+}
+$uploadedFile = Send-ApkToDrive $ApkPath $accessToken $destinationFolderId $DriveFileName
 Write-Host "Google Drive upload completed: $($uploadedFile.name) ($($uploadedFile.id))"

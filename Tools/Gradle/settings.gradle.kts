@@ -17,6 +17,9 @@ plugins {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        maven {
+            url = uri("C:/!PackagesFeed/Android")
+        }
         google()
         mavenCentral()
     }
@@ -25,11 +28,9 @@ dependencyResolutionManagement {
 val repositoryRoot = file("../..")
 
 rootProject.name = "MobileClock"
-include(":MobileClock.Android")
-include(":MobileClock.AndroidUpdater")
+include(":DocumentTranslator.Android")
 
-project(":MobileClock.Android").projectDir = repositoryRoot.resolve("MobileClock.Android")
-project(":MobileClock.AndroidUpdater").projectDir = repositoryRoot.resolve("MobileClock.AndroidUpdater")
+project(":DocumentTranslator.Android").projectDir = repositoryRoot.resolve("DocumentTranslator.Android")
 
 gradle.beforeProject {
     layout.buildDirectory.set(repositoryRoot.resolve("Build/$name"))
