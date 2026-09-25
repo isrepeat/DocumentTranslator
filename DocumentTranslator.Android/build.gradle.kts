@@ -72,8 +72,13 @@ android {
 }
 
 dependencies {
-    implementation("com.isrepeat:androidcoresdk:1.0.0")
+    implementation("com.isrepeat:androidcoresdk:+")
     implementation(libs.androidx.activity)
     implementation(libs.androidx.lifecycle)
     implementation(libs.play.services.auth)
+}
+
+configurations.configureEach {
+    // Локальный Maven feed должен отдаваться без кэша динамической версии SDK.
+    resolutionStrategy.cacheDynamicVersionsFor(0, "seconds")
 }
