@@ -1,10 +1,9 @@
 package com.isrepeat.documenttranslator.native
 
-import android.content.res.AssetManager
-import android.view.Surface
-import java.io.File
+import com.isrepeat.androidcoresdk.nativeui.NativeMessageDispatcher
+import com.isrepeat.androidcoresdk.nativeui.NativeRenderHost
 
-object NativeRenderer {
+object NativeRenderer : NativeRenderHost {
     enum class AppSessionSignal(val value: Int) {
         UPDATE_APPLICATION(3),
         UPLOAD_SCREENSHOT(4),
@@ -25,7 +24,7 @@ object NativeRenderer {
         System.loadLibrary("mobileclock")
     }
 
-    fun initialize(filesDirectory: File, assetManager: AssetManager) {
+    fun initialize(filesDirectory: java.io.File, assetManager: android.content.res.AssetManager) {
         // Kotlin подготавливает Android-зависимые объекты до первого GL-кадра.
         initializeApplication(filesDirectory)
         nativeSetAssetManager(assetManager)
@@ -33,13 +32,13 @@ object NativeRenderer {
     }
 
     @Synchronized
-    private fun initializeApplication(filesDirectory: File) {
+    private fun initializeApplication(filesDirectory: java.io.File) {
         if (isApplicationInitialized) {
             return
         }
         // Состояние приложения передаётся явно. Настройка логов не должна
         // неявно создавать репозитории или AppSessionController.
-        val storageFile = File(filesDirectory, "documenttranslator-state.json")
+        val storageFile = java.io.File(filesDirectory, "documenttranslator-state.json")
         nativeInitializeApplication(storageFile.absolutePath)
         isApplicationInitialized = true
     }
@@ -53,23 +52,23 @@ object NativeRenderer {
         isLogFileConfigured = true
     }
 
-    fun log(message: String) {
+    override fun log(message: String) {
         nativeLog("Android", message)
     }
 
-    fun onSurfaceChanged(surface: Surface, width: Int, height: Int) {
+    override fun onSurfaceChanged(surface: android.view.Surface, width: Int, height: Int) {
         nativeSurfaceChanged(surface, width, height)
     }
 
-    fun onSurfaceDestroyed() {
+    override fun onSurfaceDestroyed() {
         nativeSurfaceDestroyed()
     }
 
-    fun onTouch(action: Int, x: Float, y: Float) {
+    override fun onTouch(action: Int, x: Float, y: Float) {
         nativeTouch(action, x, y)
     }
 
-    fun render() {
+    override fun render() {
         nativeRender()
     }
 
@@ -87,8 +86,8 @@ object NativeRenderer {
     //
     // Примеры преобразования аргументов: Surface/AssetManager -> jobject,
     // Int -> jint, Float -> jfloat, String -> jstring.
-    private external fun nativeSurfaceChanged(surface: Surface, width: Int, height: Int)
-    private external fun nativeSetAssetManager(assetManager: AssetManager)
+    private external fun nativeSurfaceChanged(surface: android.view.Surface, width: Int, height: Int)
+    private external fun nativeSetAssetManager(assetManager: android.content.res.AssetManager)
     private external fun nativeSetCommandDispatcher(dispatcher: NativeBridgeCommandDispatcher)
     private external fun nativeDispatchSessionSignal(signal: Int, value: String, additionalValue: String)
     private external fun nativeLog(category: String, message: String)
@@ -100,12 +99,18 @@ object NativeRenderer {
 }
 
 object NativeBridgeCommandDispatcher {
-    @Volatile
-    var handler: ((Int, String, String) -> Unit)? = null
+    private val dispatcher = NativeMessageDispatcher()
+
+    var handler: ((Int, String, String) -> Unit)?
+        get() = null
+        set(value) {
+            dispatcher.handler = value?.let { callback ->
+                { message -> callback(message.signal, message.value, message.additionalValue) }
+            }
+        }
 
     // Вызывается C++ после обработки native-кнопки.
     fun dispatch(signal: Int, value: String, additionalValue: String) {
-        handler?.invoke(signal, value, additionalValue)
+        dispatcher.dispatch(signal, value, additionalValue)
     }
-
 }

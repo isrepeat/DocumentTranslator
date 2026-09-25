@@ -24,7 +24,6 @@ android {
     compileSdk {
         version = release(36)
     }
-
     defaultConfig {
         applicationId = "com.isrepeat.documenttranslator"
         minSdk = 24
@@ -38,7 +37,6 @@ android {
         }
 
     }
-
     signingConfigs {
         create("release") {
             // Когда файла нет, debug-сборка остаётся доступной. Release без
