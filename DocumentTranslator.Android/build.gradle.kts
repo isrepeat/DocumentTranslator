@@ -72,6 +72,7 @@ android {
 }
 
 dependencies {
+    implementation("com.isrepeat:androidappkit:+")
     implementation("com.isrepeat:androidcoresdk:+")
     implementation(libs.androidx.activity)
     implementation(libs.androidx.lifecycle)
