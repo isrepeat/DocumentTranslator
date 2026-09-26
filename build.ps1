@@ -3,7 +3,13 @@ param()
 
 dynamicparam {
     $ErrorActionPreference = 'Stop'
-    $config = Import-PowerShellDataFile (Join-Path $PSScriptRoot 'android-build.psd1')
+    # CMake запускает Windows PowerShell в урезанном окружении, где cmdlet
+    # Import-PowerShellDataFile может быть недоступен. Конфигурация проекта
+    # контролируется репозиторием и обязана вернуть хеш-таблицу.
+    $config = & ([scriptblock]::Create([System.IO.File]::ReadAllText((Join-Path $PSScriptRoot 'android-build.psd1'))))
+    if ($config -isnot [hashtable]) {
+        throw 'android-build.psd1 must return a hashtable.'
+    }
     $version = $config.BuildToolsVersion
     if ($version -notmatch '^\d+\.\d+\.\d+$') {
         throw 'BuildToolsVersion must pin an exact major.minor.patch version.'

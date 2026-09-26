@@ -29,7 +29,6 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
 execute_process(
     COMMAND powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass
         -File "${mobileclock_xaml_generator_script}" -Command generate-xaml
-        -CMakeExecutable "${CMAKE_COMMAND}"
     WORKING_DIRECTORY "${mobileclock_project_root}"
     RESULT_VARIABLE mobileclock_xaml_generator_result
     OUTPUT_VARIABLE mobileclock_xaml_generator_output

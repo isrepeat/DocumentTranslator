@@ -1,5 +1,5 @@
 @{
-    BuildToolsVersion = '1.0.8'
+    BuildToolsVersion = '1.0.11'
     BuildToolsSource = 'C:\NugetFeed'
     ArtifactName = 'DocumentTranslator'
     AndroidModule = 'DocumentTranslator.Android'
@@ -13,8 +13,6 @@
     VersionFile = 'version.properties'
     DistributionDirectory = 'Build\distribution'
     Xaml = @{
-        CompilerSource = 'UtilityHelpersLib\NugetProjects\XamlRuntime\Nuget\XamlCompiler'
-        CompilerBuild = 'Build\DocumentTranslator.Application\xaml-compiler'
         Namespace = 'urn:mobileclock:xaml'
         ControlNamespace = 'mobileclock::ui::control'
         ControlIncludePrefix = 'DocumentTranslator.UI/Control'
