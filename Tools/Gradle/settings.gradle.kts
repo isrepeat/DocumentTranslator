@@ -1,37 +1,20 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
         gradlePluginPortal()
     }
+    val restore = providers.exec {
+        commandLine("powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
+            "-File", file("../../build.ps1").absolutePath, "restore")
+    }
+    val packageRoot = restore.standardOutput.asText.get().trim().lineSequence().last()
+    includeBuild("$packageRoot/gradle")
 }
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        maven {
-            url = uri("C:/!PackagesFeed/Android")
-        }
-        google()
-        mavenCentral()
-    }
+    id("com.isrepeat.android.settings")
 }
 
-val repositoryRoot = file("../..")
-
-rootProject.name = "MobileClock"
+rootProject.name = "DocumentTranslator"
 include(":DocumentTranslator.Android")
-
-project(":DocumentTranslator.Android").projectDir = repositoryRoot.resolve("DocumentTranslator.Android")
-
-gradle.beforeProject {
-    layout.buildDirectory.set(repositoryRoot.resolve("Build/$name"))
-}
+project(":DocumentTranslator.Android").projectDir = file("../../DocumentTranslator.Android")

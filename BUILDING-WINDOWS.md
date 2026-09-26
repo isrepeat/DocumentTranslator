@@ -102,3 +102,25 @@ NDK автоматически ищется в `ANDROID_NDK_HOME`, `ANDROID_NDK_
 Windows-preview использует готовый AndroidAppPreviewer EXE. Его исходный WPF-проект
 не должен собираться как зависимость CMake. Запуск previewer и установка APK
 на устройство — отдельные проверки, не проверка дерева CMake.
+## Gradle conventions и новый проект
+
+AndroidBuildTools 1.0.8 также содержит `com.isrepeat.android.application` и
+`com.isrepeat.android.settings`. `Tools/Gradle/settings.gradle.kts` восстанавливает
+пакет через корневой `build.ps1` и подключает его Gradle build. В Android-модуле
+остаются package ID, ресурсы, пути native `.so` и зависимости приложения.
+SDK, Java/Kotlin target, build types и базовые AndroidX зависимости задаёт plugin.
+
+Общий Maven feed переопределяется через `ANDROID_MAVEN_SOURCE` или
+`-PandroidMavenSource`. Для Release нужен внешний файл signing properties;
+путь указан в `Tools/Gradle/gradle.properties`. Debug доступен и без этого файла.
+
+Новый независимый проект создаётся из восстановленного пакета:
+
+```powershell
+$tools = ./build.ps1 restore
+& "$tools/tools/New-AndroidApplication.ps1" -Name SampleApp -PackageId com.example.sampleapp -Destination C:\Projects\SampleApp
+```
+
+Генератор создаёт Gradle wrapper, минимальные Java Activity и JNI-библиотеку.
+После перехода в новый каталог достаточно `./build.ps1 build-android`.
+XAML и previewer подключаются отдельно при необходимости.
