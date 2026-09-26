@@ -56,7 +56,7 @@ flowchart TD
 ### Шаг 1. Загрузчик читает конфигурацию
 
 Корневой `build.ps1` сначала читает `android-build.psd1`. В нём записано, что
-нужен `AndroidBuildTools 1.0.16` из `C:\NugetFeed`.
+нужен `AndroidBuildTools 1.0.17` из `C:\NugetFeed`.
 
 Также там описано, например:
 
@@ -76,7 +76,7 @@ NativeLibrary = 'libmobileclock.so'
 Если package ещё отсутствует, загрузчик выполняет по сути такую команду:
 
 ```powershell
-nuget install AndroidBuildTools -Version 1.0.16 `
+nuget install AndroidBuildTools -Version 1.0.17 `
     -Source C:\NugetFeed `
     -OutputDirectory <PackageDirectories.AndroidBuildTools>
 ```
@@ -84,11 +84,11 @@ nuget install AndroidBuildTools -Version 1.0.16 `
 Итоговый каталог:
 
 ```text
-Build/Packages/DocumentTranslator/AndroidBuildTools.1.0.16/
+Build/Packages/DocumentTranslator/AndroidBuildTools.1.0.17/
 ```
 
 Это build output, поэтому он не хранится в Git. Его можно безопасно удалить:
-следующий запуск восстановит ровно версию `1.0.16`.
+следующий запуск восстановит ровно версию `1.0.17`.
 
 Если временно нужен другой feed, можно не менять Git-файл:
 
@@ -102,7 +102,7 @@ $env:ANDROID_BUILD_TOOLS_SOURCE = 'D:\TemporaryNugetFeed'
 После восстановления загрузчик запускает:
 
 ```text
-.../AndroidBuildTools.1.0.16/tools/Invoke-Build.ps1
+.../AndroidBuildTools.1.0.17/tools/Invoke-Build.ps1
 ```
 
 Этот файл принимает команду `build-android` и вызывает соответствующий script

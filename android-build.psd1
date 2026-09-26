@@ -1,5 +1,5 @@
 @{
-    BuildToolsVersion = '1.0.16'
+    BuildToolsVersion = '1.0.17'
     BuildToolsSource = 'C:\NugetFeed'
     ArtifactName = 'DocumentTranslator'
     AndroidModule = 'DocumentTranslator.Android'
