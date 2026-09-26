@@ -14,7 +14,7 @@ dynamicparam {
     if ($version -notmatch '^\d+\.\d+\.\d+$') {
         throw 'BuildToolsVersion must pin an exact major.minor.patch version.'
     }
-    $packagesRoot = Join-Path $PSScriptRoot "Build\Packages\$($config.ArtifactName)"
+    $packagesRoot = Join-Path $PSScriptRoot $config.PackageDirectories.AndroidBuildTools
     $packageRoot = Join-Path $packagesRoot "AndroidBuildTools.$version"
     $entryPoint = Join-Path $packageRoot 'tools\Invoke-Build.ps1'
     if (-not (Test-Path -LiteralPath $entryPoint -PathType Leaf)) {

@@ -1,5 +1,5 @@
 @{
-    BuildToolsVersion = '1.0.11'
+    BuildToolsVersion = '1.0.16'
     BuildToolsSource = 'C:\NugetFeed'
     ArtifactName = 'DocumentTranslator'
     AndroidModule = 'DocumentTranslator.Android'
@@ -12,6 +12,14 @@
     GradleRoot = 'Tools\Gradle'
     VersionFile = 'version.properties'
     DistributionDirectory = 'Build\distribution'
+    PackageDirectories = @{
+        AndroidBuildTools = 'Build\Packages\DocumentTranslator'
+        XamlRuntime = 'Build\Packages\DocumentTranslator.AndroidHost'
+        AndroidAppPreviewerPluginSdk = 'Build\Packages\DocumentTranslator.PreviewPlugin'
+    }
+    PackageSources = @{
+        Native = 'C:\NugetFeed'
+    }
     Xaml = @{
         Namespace = 'urn:mobileclock:xaml'
         ControlNamespace = 'mobileclock::ui::control'

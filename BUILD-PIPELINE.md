@@ -56,7 +56,7 @@ flowchart TD
 ### Шаг 1. Загрузчик читает конфигурацию
 
 Корневой `build.ps1` сначала читает `android-build.psd1`. В нём записано, что
-нужен `AndroidBuildTools 1.0.11` из `C:\NugetFeed`.
+нужен `AndroidBuildTools 1.0.16` из `C:\NugetFeed`.
 
 Также там описано, например:
 
@@ -76,19 +76,19 @@ NativeLibrary = 'libmobileclock.so'
 Если package ещё отсутствует, загрузчик выполняет по сути такую команду:
 
 ```powershell
-nuget install AndroidBuildTools -Version 1.0.11 `
+nuget install AndroidBuildTools -Version 1.0.16 `
     -Source C:\NugetFeed `
-    -OutputDirectory Build\Packages\DocumentTranslator
+    -OutputDirectory <PackageDirectories.AndroidBuildTools>
 ```
 
 Итоговый каталог:
 
 ```text
-Build/Packages/DocumentTranslator/AndroidBuildTools.1.0.11/
+Build/Packages/DocumentTranslator/AndroidBuildTools.1.0.16/
 ```
 
 Это build output, поэтому он не хранится в Git. Его можно безопасно удалить:
-следующий запуск восстановит ровно версию `1.0.11`.
+следующий запуск восстановит ровно версию `1.0.16`.
 
 Если временно нужен другой feed, можно не менять Git-файл:
 
@@ -102,7 +102,7 @@ $env:ANDROID_BUILD_TOOLS_SOURCE = 'D:\TemporaryNugetFeed'
 После восстановления загрузчик запускает:
 
 ```text
-.../AndroidBuildTools.1.0.11/tools/Invoke-Build.ps1
+.../AndroidBuildTools.1.0.16/tools/Invoke-Build.ps1
 ```
 
 Этот файл принимает команду `build-android` и вызывает соответствующий script
@@ -145,15 +145,18 @@ Build/Packages/DocumentTranslator.AndroidHost/XamlRuntime.<версия>/tools/w
 
 `build-android.ps1` всегда вызывает `generate-xaml.ps1` до CMake-сборки
 основного приложения. Тот восстанавливает последнюю доступную версию
-`XamlRuntime` в источник, заданный `ANDROIDAPPKIT_NUGET_SOURCE`. Если переменная
-не задана, используется `C:\NugetFeed`, а при его отсутствии — NuGet.org.
-Это то же правило, которым пользуется CMake при `find_package(XamlRuntime)`.
+`XamlRuntime` из источника, заданного в `PackageSources.Native`. Этот же источник
+передаётся CMake при `find_package(XamlRuntime)`.
 
-Устанавливаются пакеты в каталог, зависящий от `AndroidHost`:
+Каталог задаётся конечным проектом в `PackageDirectories.XamlRuntime`:
 
 ```text
-Build/Packages/DocumentTranslator.AndroidHost/XamlRuntime.<версия>/
+Build/Packages/DocumentTranslator.AndroidHost/
 ```
+
+Это пример текущего DocumentTranslator, а не правило пакета. Другой проект
+может указать любой свой относительный путь. AndroidBuildTools получает уже
+вычисленный абсолютный каталог и не знает структуры проекта.
 
 Генератор выбирает наиболее новую папку `XamlRuntime.<версия>` с файлом:
 
@@ -416,7 +419,9 @@ $tools = ./build.ps1 restore
 & "$tools/tools/New-AndroidApplication.ps1" `
     -Name SampleApp `
     -PackageId com.example.sampleapp `
-    -Destination C:\Projects\SampleApp
+    -Destination C:\Projects\SampleApp `
+    -BuildToolsSource C:\NugetFeed `
+    -NativePackageSource C:\NugetFeed
 ```
 
 Он создаёт минимальный Git-каркас с wrapper Gradle, Java Activity, JNI-библиотекой

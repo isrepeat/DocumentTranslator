@@ -4,7 +4,7 @@
 
 Сборка использует NuGet-пакет `AndroidBuildTools`. Точная версия и параметры приложения
 хранятся в `android-build.psd1`. Скрипты автоматически восстанавливают пакет в
-`Build/Packages/DocumentTranslator`; для этого нужен `nuget.exe` в PATH. Источник по умолчанию —
+`PackageDirectories.AndroidBuildTools` из `android-build.psd1`; для этого нужен `nuget.exe` в PATH. Источник по умолчанию —
 `C:\NugetFeed`, переопределение — переменная `ANDROID_BUILD_TOOLS_SOURCE`.
 
 Исходники пакета: `UtilityHelpersLib/NugetProjects/AndroidBuildTools`.
@@ -30,7 +30,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File build.ps1 -Command build
 `./build.ps1 run-android-app-previewer -Configuration Debug`.
 Для previewer пути находятся в секции `Preview` конфигурации приложения;
 параметр `-BuildOnly` собирает previewer и плагин без запуска окна.
-Скрипты пакета в `Build/Packages/DocumentTranslator` не редактируются: изменения вносятся в исходники
+Скрипты пакета в каталоге `PackageDirectories.AndroidBuildTools` не редактируются: изменения вносятся в исходники
 пакета, публикуются новой версией и подключаются через `BuildToolsVersion`.
 
 ## Необходимые инструменты
@@ -78,7 +78,7 @@ NDK автоматически ищется в `ANDROID_NDK_HOME`, `ANDROID_NDK_
 По умолчанию используется существующий `C:/NugetFeed`, иначе nuget.org.
 Наличие внутренних пакетов на nuget.org не гарантируется: на новом ПК укажите
 реальный feed с ними. Уже распакованные пакеты находятся в
-`Build/Packages/<Project>`: XamlRuntime находится в `DocumentTranslator.AndroidHost`,
+каталогах из `PackageDirectories`: XamlRuntime находится в `PackageDirectories.XamlRuntime`,
 а AndroidAppPreviewer.PluginSDK — в `DocumentTranslator.PreviewPlugin`.
 Внутри каждого каталога проекта сохраняются папки `<Package>.<Version>`.
 
@@ -118,7 +118,7 @@ SDK, Java/Kotlin target, build types и базовые AndroidX зависимо
 
 ```powershell
 $tools = ./build.ps1 restore
-& "$tools/tools/New-AndroidApplication.ps1" -Name SampleApp -PackageId com.example.sampleapp -Destination C:\Projects\SampleApp
+& "$tools/tools/New-AndroidApplication.ps1" -Name SampleApp -PackageId com.example.sampleapp -Destination C:\Projects\SampleApp -BuildToolsSource C:\NugetFeed -NativePackageSource C:\NugetFeed
 ```
 
 Генератор создаёт Gradle wrapper, минимальные Java Activity и JNI-библиотеку.

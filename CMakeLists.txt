@@ -20,10 +20,62 @@ if (NOT ANDROID_BUILD_TOOLS_ROOT)
     file(TO_CMAKE_PATH "${ANDROID_BUILD_TOOLS_ROOT}" ANDROID_BUILD_TOOLS_ROOT)
 endif()
 
+function(documenttranslator_get_configuration_path configuration_name output_variable)
+    find_program(documenttranslator_powershell NAMES powershell.exe REQUIRED)
+    execute_process(
+        COMMAND "${documenttranslator_powershell}" -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_CURRENT_SOURCE_DIR}/build.ps1"
+            -Command get-configuration-path -Name "${configuration_name}"
+        RESULT_VARIABLE documenttranslator_configuration_result
+        OUTPUT_VARIABLE documenttranslator_configuration_output
+        ERROR_VARIABLE documenttranslator_configuration_error
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if (NOT documenttranslator_configuration_result EQUAL 0)
+        message(FATAL_ERROR
+            "Could not read ${configuration_name} from android-build.psd1: "
+            "${documenttranslator_configuration_output}\n${documenttranslator_configuration_error}")
+    endif()
+    string(REGEX MATCH "[^\r\n]+$" documenttranslator_configuration_path
+        "${documenttranslator_configuration_output}")
+    file(TO_CMAKE_PATH "${documenttranslator_configuration_path}"
+        documenttranslator_configuration_path)
+    set(${output_variable} "${documenttranslator_configuration_path}" PARENT_SCOPE)
+endfunction()
+
+function(documenttranslator_get_configuration_value configuration_name output_variable)
+    find_program(documenttranslator_powershell NAMES powershell.exe REQUIRED)
+    execute_process(
+        COMMAND "${documenttranslator_powershell}" -NoProfile -ExecutionPolicy Bypass
+            -File "${CMAKE_CURRENT_SOURCE_DIR}/build.ps1"
+            -Command get-configuration-value -Name "${configuration_name}"
+        RESULT_VARIABLE documenttranslator_configuration_result
+        OUTPUT_VARIABLE documenttranslator_configuration_output
+        ERROR_VARIABLE documenttranslator_configuration_error
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if (NOT documenttranslator_configuration_result EQUAL 0)
+        message(FATAL_ERROR
+            "Could not read ${configuration_name} from android-build.psd1: "
+            "${documenttranslator_configuration_output}\n${documenttranslator_configuration_error}")
+    endif()
+    string(REGEX MATCH "[^\r\n]+$" documenttranslator_configuration_value
+        "${documenttranslator_configuration_output}")
+    set(${output_variable} "${documenttranslator_configuration_value}" PARENT_SCOPE)
+endfunction()
+
+documenttranslator_get_configuration_path("PackageDirectories.XamlRuntime"
+    documenttranslator_xaml_runtime_packages_root)
+documenttranslator_get_configuration_path("PackageDirectories.AndroidAppPreviewerPluginSdk"
+    documenttranslator_plugin_sdk_packages_root)
+documenttranslator_get_configuration_value("PackageSources.Native"
+    documenttranslator_native_package_source)
 include("${ANDROID_BUILD_TOOLS_ROOT}/tools/cmake/InstallXamlRuntime.cmake")
-fn_androidappkit_install_xaml_runtime("DocumentTranslator.AndroidHost")
+fn_androidappkit_install_xaml_runtime("${documenttranslator_xaml_runtime_packages_root}"
+    "${documenttranslator_native_package_source}")
 include("${ANDROID_BUILD_TOOLS_ROOT}/tools/cmake/InstallAndroidAppPreviewerPluginSdk.cmake")
-fn_androidappkit_install_android_app_previewer_plugin_sdk("DocumentTranslator.PreviewPlugin")
+fn_androidappkit_install_android_app_previewer_plugin_sdk("${documenttranslator_plugin_sdk_packages_root}"
+    "${documenttranslator_native_package_source}")
 
 # Короткое имя сохраняет пути к промежуточным объектам ниже MAX_PATH, не
 # меняя имя исходной папки DocumentTranslator.AndroidHost.
