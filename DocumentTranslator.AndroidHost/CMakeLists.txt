@@ -18,16 +18,17 @@ endif()
 get_filename_component(mobileclock_project_root "${CMAKE_CURRENT_SOURCE_DIR}" DIRECTORY)
 set(mobileclock_generated_root "${mobileclock_project_root}/!Generated")
 set(mobileclock_xaml_generator_script
-    "${mobileclock_project_root}/Scripts/PowerShell/generate-xaml.ps1")
+    "${mobileclock_project_root}/build.ps1")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-    "${mobileclock_xaml_generator_script}")
+    "${mobileclock_xaml_generator_script}"
+    "${mobileclock_project_root}/android-build.psd1")
 
 # Generated XAML C++ sources are part of the source list below, so they must
 # exist before CMake scans the project.  Running the incremental generator at
 # configure time lets both Visual Studio presets work from a clean checkout.
 execute_process(
     COMMAND powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass
-        -File "${mobileclock_xaml_generator_script}"
+        -File "${mobileclock_xaml_generator_script}" -Command generate-xaml
         -CMakeExecutable "${CMAKE_COMMAND}"
     WORKING_DIRECTORY "${mobileclock_project_root}"
     RESULT_VARIABLE mobileclock_xaml_generator_result
@@ -192,7 +193,7 @@ list(FILTER mobileclock_application_source_files EXCLUDE REGEX "/intellisense-pr
 if (NOT mobileclock_xaml_source OR NOT mobileclock_xaml_generated
     OR NOT mobileclock_xaml_generated_headers)
     message(FATAL_ERROR
-        "Generated XAML sources are missing. Run Scripts/PowerShell/build-android.ps1 first.")
+        "Generated XAML sources are missing. Run build.ps1 build-android first.")
 endif()
 set_source_files_properties(${mobileclock_xaml_source} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_source_files_properties(${mobileclock_application_resource_files} PROPERTIES HEADER_FILE_ONLY TRUE)

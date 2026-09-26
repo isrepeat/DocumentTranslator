@@ -1,5 +1,38 @@
 # Сборка на Windows 11
 
+## Общие инструменты сборки
+
+Сборка использует NuGet-пакет `AndroidBuildTools`. Точная версия и параметры приложения
+хранятся в `android-build.psd1`. Скрипты автоматически восстанавливают пакет в
+`Build/Packages/DocumentTranslator`; для этого нужен `nuget.exe` в PATH. Источник по умолчанию —
+`C:\NugetFeed`, переопределение — переменная `ANDROID_BUILD_TOOLS_SOURCE`.
+
+Исходники пакета: `UtilityHelpersLib/NugetProjects/AndroidBuildTools`.
+Перед первым запуском пакет должен быть опубликован в feed через
+`UtilityHelpersLib/Scripts/Nuget.AndroidBuildTools.Pack.cmd`.
+
+В проекте остался один сборочный `build.ps1`; он восстанавливает пакет и передаёт
+команду с параметрами. Обычные `.bat`-команды сохранены.
+Список команд и проверки параметров задаёт `tools/Invoke-Build.ps1` внутри пакета.
+Эталон загрузчика находится в `templates/build.ps1` пакета AndroidBuildTools.
+Новые команды не требуют обновления загрузчика в приложении.
+
+Для сборки версионного APK
+без загрузки в Google Drive:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File build.ps1 -Command build-and-distribute -Destination Local -Configuration Debug
+```
+
+Результат: `Build/distribution/DocumentTranslator-<versionName>.apk`.
+Версия определяется по существующим APK; `version.properties` не меняется.
+Другие команды: `./build.ps1 bump-version`, `./build.ps1 generate-xaml`,
+`./build.ps1 run-android-app-previewer -Configuration Debug`.
+Для previewer пути находятся в секции `Preview` конфигурации приложения;
+параметр `-BuildOnly` собирает previewer и плагин без запуска окна.
+Скрипты пакета в `Build/Packages/DocumentTranslator` не редактируются: изменения вносятся в исходники
+пакета, публикуются новой версией и подключаются через `BuildToolsVersion`.
+
 ## Необходимые инструменты
 
 - Visual Studio 2022/2026 с MSVC x64/x86, Windows SDK и компонентом «Средства CMake C++ для Windows» (CMake + Ninja). Текущая проверка выполнена в VS 2026.
@@ -45,7 +78,9 @@ NDK автоматически ищется в `ANDROID_NDK_HOME`, `ANDROID_NDK_
 По умолчанию используется существующий `C:/NugetFeed`, иначе nuget.org.
 Наличие внутренних пакетов на nuget.org не гарантируется: на новом ПК укажите
 реальный feed с ними. Уже распакованные пакеты находятся в
-`Build/MobileClock/NuGetPackages`.
+`Build/Packages/<Project>`: XamlRuntime находится в `DocumentTranslator.AndroidHost`,
+а AndroidAppPreviewer.PluginSDK — в `DocumentTranslator.PreviewPlugin`.
+Внутри каждого каталога проекта сохраняются папки `<Package>.<Version>`.
 
 Для настроек только одного компьютера можно создать игнорируемый Git файл
 `CMakeUserPresets.json`, унаследовать `android-arm64-debug` или `windows-x64-debug`
@@ -59,9 +94,9 @@ NDK автоматически ищется в `ANDROID_NDK_HOME`, `ANDROID_NDK_
 
 ```powershell
 # Конфигурация и сборка libmobileclock.so, без APK:
-./Scripts/PowerShell/build-android.ps1 -NativeOnly
+./build.ps1 -Command build-android -NativeOnly
 # Дополнительно сборка APK через Gradle:
-./Scripts/PowerShell/build-android.ps1
+./build.ps1 -Command build-android
 ```
 
 Windows-preview использует готовый AndroidAppPreviewer EXE. Его исходный WPF-проект

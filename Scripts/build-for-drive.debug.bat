@@ -2,7 +2,7 @@
 setlocal
 
 chcp 65001 >nul
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0PowerShell\build-for-drive.ps1" -Configuration Debug %*
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\build.ps1" -Command build-for-drive -Configuration Debug %*
 set "buildExitCode=%ERRORLEVEL%"
 
 echo.
