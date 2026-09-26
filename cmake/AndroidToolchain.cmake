@@ -14,4 +14,5 @@ endif()
 # NuGet выводит журнал восстановления; последняя строка всегда содержит путь пакета.
 string(REGEX MATCH "[^\r\n]+$" android_build_tools_root "${android_build_tools_output}")
 file(TO_CMAKE_PATH "${android_build_tools_root}" android_build_tools_root)
-include("${android_build_tools_root}/tools/cmake/AndroidToolchain.cmake")
+set(ANDROID_BUILD_TOOLS_ROOT "${android_build_tools_root}" CACHE INTERNAL "Restored AndroidBuildTools package root")
+include("${ANDROID_BUILD_TOOLS_ROOT}/tools/cmake/AndroidToolchain.cmake")
