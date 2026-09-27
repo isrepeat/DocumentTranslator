@@ -7,7 +7,7 @@ CMake, Gradle plugins и команды описаны в
 
 ## Конфигурация проекта
 
-[android-build.psd1](android-build.psd1) закрепляет `AndroidBuildTools 1.0.21`
+[android-build.psd1](android-build.psd1) закрепляет `AndroidBuildTools 1.0.39`
 и задаёт данные приложения:
 
 | Значение | DocumentTranslator |
